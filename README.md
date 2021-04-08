@@ -40,7 +40,6 @@ This sample uses following contribution points, activation events and APIs
 - `TreeDataProvider`
 
 
-
 Refer to [Usage](./USAGE.md) document for more details.
 
 ## Running the Sample
