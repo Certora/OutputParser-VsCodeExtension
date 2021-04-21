@@ -1,36 +1,28 @@
 # Views & View Containers
 
-This sample demonstrates how to implement and contribute a tree view in VS Code. This includes:
+This package provides following views
 
-- Contributing views and view containers.
-- Contributing actions in various location of the view.
-- Implementing the tree data provider for the view.
-- Creating and working with the view.
+- Spec outlin view
+- Available contracts view
+- Call trace view
+- Variables view
+- Call resolution warnings view
 
-This sample provides following views
+The last three are included in a new container view called detailed information
 
-- Node dependencies view
-- Ftp file explorer view
-
-Following example shows Node dependencies view in Package Explorer View container.
-
-![Package Explorer](./resources/package-explorer.png)
 
 ## VS Code API
 
-This sample uses following contribution points, activation events and APIs
+This package uses following contribution points, activation events and APIs
 
 ### Contribution Points
 
 - `views`
 - `viewsContainers`
-- `menu`
-  - `view/title`
-  - `view/item/context`
 
 ### Activation Events
 
-- `onView:${viewId}`
+- `workspaceContains:data.json`
 
 ### APIs
 
@@ -40,13 +32,12 @@ This sample uses following contribution points, activation events and APIs
 - `TreeDataProvider`
 
 
-Refer to [Usage](./USAGE.md) document for more details.
 
-## Running the Sample
+## Running the Package
 
 - Open this example in VS Code Insiders
 - `npm install`
 - `npm run watch`
 - `F5` to start debugging
-- Node dependencies view is shown in Package explorer view container in Activity bar.
-- FTP file explorer view should be shown in Explorer
+- Spec outline (list of properties) view is shown in Package explorer view container in Activity bar.
+- When click on the property Detailed information view container should be shown (presenting a call trace, variables and a call resolution warnings views).
