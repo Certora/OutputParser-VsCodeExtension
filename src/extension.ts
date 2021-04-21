@@ -70,14 +70,19 @@ export function activate(context: vscode.ExtensionContext) {
 		// vscode.commands.executeCommand('workbench.action.explorer.focus');
 		vscode.commands.executeCommand('specOutline.focus');
 	}  catch (e){
-		console.log("Couldn't focus on `specOutline`");
+		console.log("Couldn't focus on specOutline");
 		console.log(e);
 	}
+
+	// Samples of `window.registerTreeDataProvider`
+	const callT = new CallTraceProvider(null);
+	vscode.window.registerTreeDataProvider('callTrace', callT);
+	vscode.commands.registerCommand('callTrace.refresh', (callTraceData: any) => callT.refresh(callTraceData));
 	
 
 	const commandDisposal = vscode.commands.registerCommand(
 		'extension.showDetails', 
-		(propertyName: string, ruleName?: string) => {
+		async (propertyName: string, ruleName?: string) => {
 			console.log("registerCommand");
 			console.log(propertyName);
 			let callTrace: any;
@@ -109,15 +114,25 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// create a call trace view
 			try{
+				// remove previous subscription:
+				// const some = context.subscriptions.slice(3);
+				// for (let index = 0; index < some.length; index++) {
+				// 	const element = some[index];
+				// 	console.log(element);
+				// 	element.dispose();
+				// }
+				
 				console.log("CallTraceProvider");
-				const callT = new CallTraceProvider(callTrace);
-				const disposable = vscode.window.createTreeView('callTrace', {
-					treeDataProvider: callT,
-				});
-				context.subscriptions.push(disposable);
+				if (callTrace)
+					vscode.commands.executeCommand('callTrace.refresh', callTrace);
+				// const callT = new CallTraceProvider(callTrace);
+				// const disposable = vscode.window.createTreeView('callTrace', {
+				// 	treeDataProvider: callT,
+				// });
+				// context.subscriptions.push(disposable);
 				vscode.commands.executeCommand('setContext', 'callTraceDefined', true);
 			} catch (e){
-				console.log("Couldn't create a tree view for `call trace`");
+				console.log("Couldn't create a tree view for call trace");
 				console.log(e);
 			}
 			
@@ -137,7 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 				
 			} catch (e){
-				console.log("Couldn't create a tree view for `variables`");
+				console.log("Couldn't create a tree view for variables");
 				console.log(e);
 			}
 
@@ -163,18 +178,18 @@ export function activate(context: vscode.ExtensionContext) {
 			
 				vscode.commands.executeCommand('setContext', 'propertyChosen', true);
 			} catch (e){
-				console.log("Couldn't create a tree view for `callResolutionWarnings`");
+				console.log("Couldn't create a tree view for callResolutionWarnings");
 				console.log(e);
 			}
 
-			console.log(context);
+			// console.log(context);
 		}
 		
 	);
 
 	context.subscriptions.push(commandDisposal);
-	console.log(context);
-	console.log(context.subscriptions);
+	// console.log(context);
+	// console.log(context.subscriptions);
 
 	// TODO: diagnostics collection can be used for presenting the errors/warnings
 	// however, it has to be connected to a documented

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 
 export class CallTraceProvider implements vscode.TreeDataProvider<CallTraceItem> {
@@ -10,7 +9,10 @@ export class CallTraceProvider implements vscode.TreeDataProvider<CallTraceItem>
 	constructor(private data: any) {
 	}
 
-	refresh(): void {
+	refresh(callTraceData: any): void {
+		console.log("Refreshed");
+		console.log(callTraceData);
+		this.data = callTraceData;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -102,5 +104,5 @@ export class CallTraceItem extends vscode.TreeItem {
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
 	};
 
-	contextValue = 'callTrace';
+	// contextValue = 'callTrace';
 }
