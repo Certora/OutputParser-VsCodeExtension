@@ -68,8 +68,8 @@ export class SpecOutlineProvider implements vscode.TreeDataProvider<SpecOutlineI
 					currentRow.result
 				);
 			} else { // show the details of a flat properties (or method if parametric rule)
-				console.log("property");
-				console.log(propertyResult);
+				// console.log("property");
+				// console.log(propertyResult);
 
 				return new SpecOutlineItem(
 					currentRow.ruleName, 

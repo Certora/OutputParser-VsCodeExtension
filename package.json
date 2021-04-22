@@ -1,0 +1,98 @@
+{
+	"name": "certora-output-parser",
+	"displayName": "Certora output parser",
+	"description": "Presents Certora verification results",
+	"version": "0.1.0",
+	"publisher": "Certora",
+	"enableProposedApi": true,
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"workspaceContains:data.json"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "callTrace",
+				"contents": "No call trace found. Make sure you've chosen a violated property"
+			},
+			{
+				"view": "variables",
+				"contents": "No variables were found. Make sure you've chosen a violated property"
+			},
+			{
+				"view": "callResolutionWarnings",
+				"contents": "No call resolution warnings were found"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "detailed-information",
+					"title": "Detailed Information",
+					"icon": "media/dep.svg"
+				}
+			]
+		},
+		"views": {
+			"detailed-information": [
+				{
+					"id": "callTrace",
+					"name": "Call Trace",
+					"icon": "media/dep.svg",
+					"when": "callTraceDefined",
+					"contextualTitle": "Call Trace"
+				},
+				{
+					"id": "variables",
+					"name": "Variables",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Variables"
+				},
+				{
+					"id": "callResolutionWarnings",
+					"name": "Call Resolution Warnings",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Call Resolution Warnings"
+				}
+			],
+			"explorer": [
+				{
+					"id": "specOutline",
+					"name": "Spec Outline"
+				},
+				{
+					"id": "availableContracts",
+					"name": "Available Contracts"
+				}
+			]
+		},
+		"commands": [			
+			{
+				"command": "extension.showDetails",
+				"title": "Show details"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint . --ext .ts,.tsx"
+	},
+	"devDependencies": {
+		"@types/node": "^12.12.0",
+		"@types/vscode": "^1.45.0",
+		"@typescript-eslint/eslint-plugin": "^4.16.0",
+		"@typescript-eslint/parser": "^4.16.0",
+		"eslint": "^7.21.0",
+		"typescript": "^4.2.2"
+	}
+}

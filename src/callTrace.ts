@@ -10,7 +10,7 @@ export class CallTraceProvider implements vscode.TreeDataProvider<CallTraceItem>
 	}
 
 	refresh(callTraceData: any): void {
-		console.log("Refreshed");
+		console.log("callTrace Refreshed");
 		console.log(callTraceData);
 		this.data = callTraceData;
 		this._onDidChangeTreeData.fire();

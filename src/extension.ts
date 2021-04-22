@@ -3,50 +3,48 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 
-// import { DepNodeProvider, Dependency } from './nodeDependencies';
-import { CallTraceProvider, CallTraceItem } from './callTrace';
-// import { JsonOutlineProvider } from './jsonOutline';
+import { CallTraceProvider } from './callTrace';
 import { SpecOutlineProvider } from './specOutline';
 import { AvailableContractsProvider } from './availableContracts';
-import { VariablesItem, VariablesProvider } from './variables';
+import { VariablesProvider } from './variables';
 import { CallResolutionWarningsProvider } from './callResolutionWarnings';
 
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
 
-
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	//console.log(context)
+	let isDefined = false;
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders){
 		vscode.window.showInformationMessage('No opened workspace...');
 		return
 	}
-	// console.log(workspaceFolders);
 	const root = workspaceFolders[0];
 	const rootPath = root.uri.fsPath;
 	console.log(rootPath);
 	
 	try{
 		// open the spec file in the editor
-		vscode.workspace.findFiles('*/*.spec').then((v) => {
-			// console.log(v);
-			if (v && v.length > 0){
-				const foundFile = v[0];
+		vscode.workspace.findFiles('*/*.spec').then((specFilesList) => {
+			if (specFilesList && specFilesList.length > 0){
+				const foundFile = specFilesList[0];
 
 				var openPath = vscode.Uri.file(foundFile.path);
 				vscode.workspace.openTextDocument(openPath).then(doc => {
 					vscode.window.showTextDocument(doc);
-					// vscode.commands.executeCommand('workbench.action.toggleSidebarVisibility');
 				});
-				
+			} else {
+				console.log("Couldn't find a spec file")
 			}
 		});
-		
 	} catch (e){
 		console.log("Couldn't open the spec file");
 		console.log(e);
 	}
 
-	// read the json file
+	// read the json file - expected to be in the working directory
 	const dataPath = rootPath + "/data.json";
 	const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
@@ -58,27 +56,61 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}
 
+	// define the availble contracts tree
 	const availableContractsTreeProvder = new AvailableContractsProvider(data);
 	const availableContractsDisposal = vscode.window.registerTreeDataProvider('availableContracts', availableContractsTreeProvder);
-
+	// When this extension is deactivated the disposables will be disposed
 	context.subscriptions.push(availableContractsDisposal);
 
+	// define the properties tree
 	const specTreeProvder = new SpecOutlineProvider(data);
-	const specTreeProvderDisposal = vscode.window.registerTreeDataProvider('specOutline', specTreeProvder);
-	context.subscriptions.push(specTreeProvderDisposal);
+	const specTreeProviderDisposal = vscode.window.registerTreeDataProvider('specOutline', specTreeProvder);
+	context.subscriptions.push(specTreeProviderDisposal);
 	try{
 		// vscode.commands.executeCommand('workbench.action.explorer.focus');
 		vscode.commands.executeCommand('specOutline.focus');
 	}  catch (e){
-		console.log("Couldn't focus on specOutline");
+		console.log("Couldn't focus on specOutline view");
 		console.log(e);
 	}
 
-	// Samples of `window.registerTreeDataProvider`
-	const callT = new CallTraceProvider(null);
-	vscode.window.registerTreeDataProvider('callTrace', callT);
-	vscode.commands.registerCommand('callTrace.refresh', (callTraceData: any) => callT.refresh(callTraceData));
+	// Define a call trace tree provider
+	const callTraceProvider = new CallTraceProvider(null);
+	const callTraceProviderDisposal = vscode.window.registerTreeDataProvider('callTrace', callTraceProvider);
+	context.subscriptions.push(callTraceProviderDisposal);
 	
+	// Define a command to refresh the call trace tree
+	const callTraceRefresh = vscode.commands.registerCommand(
+		'callTrace.refresh', 
+		(callTraceData: any) => callTraceProvider.refresh(callTraceData)
+	);
+	context.subscriptions.push(callTraceRefresh);
+
+	// Define a variables tree provider
+	const varsProvider = new VariablesProvider(null);
+	const varsProviderDisposal = vscode.window.registerTreeDataProvider('variables', varsProvider);
+	context.subscriptions.push(varsProviderDisposal);
+
+	// Define a command to refresh the variables tree
+	const variablesRefresh = vscode.commands.registerCommand(
+		'variables.refresh', 
+		(variablesData: any) => varsProvider.refresh(variablesData)
+	);
+	context.subscriptions.push(variablesRefresh);
+
+	// Define a call resolution warnings tree provider
+	const callResolutionWarningsProvider = new CallResolutionWarningsProvider(null);
+	const callResWarnsDisposal = vscode.window.registerTreeDataProvider('callResolutionWarnings', callResolutionWarningsProvider);
+	context.subscriptions.push(callResWarnsDisposal);
+
+	// Define a command to refresh the call resolution warnings tree
+	const callResWarnsRefresh = vscode.commands.registerCommand(
+		'callResolutionWarnings.refresh', 
+		(callResolutionWarningsData: any) => callResolutionWarningsProvider.refresh(callResolutionWarningsData)
+	);
+	context.subscriptions.push(callResWarnsRefresh);
+
+	let assertions = vscode.window.createOutputChannel("Assertions");
 
 	const commandDisposal = vscode.commands.registerCommand(
 		'extension.showDetails', 
@@ -89,12 +121,11 @@ export function activate(context: vscode.ExtensionContext) {
 			let variables: any;
 			let assertMessages: string[];
 			let callResolutionWarnings: any;
-			let vars_disposable: vscode.TreeView<VariablesItem>;
-
+			
+			// fetch data
 			if (main_properties.has(propertyName)){
 				let results = data.main_table.contractResult.find((obj: any) => obj.tableRow.ruleName === propertyName);
-				// console.log("has");
-				// console.log(results);
+
 				callTrace = results.callTrace;
 				variables = results.variables;
 				assertMessages = results.assertMessage;
@@ -103,54 +134,62 @@ export function activate(context: vscode.ExtensionContext) {
 				const st = data.sub_tables;
 				const parametricPropertyMethodsResults = st.functionResults.find((obj: any) => 
 				obj.ruleName === ruleName);
-				// console.log("has not");
-				// console.log(parametricPropertyMethodsResults);
 				const currentMethod = parametricPropertyMethodsResults.tableBody.find((obj: any) => obj.tableRow.funcName === propertyName);
+				
 				callTrace = currentMethod.callTrace;
 				variables = currentMethod.variables;
 				assertMessages = currentMethod.assertMessage;
 				callResolutionWarnings = currentMethod.callResolutionWarningsTable?.callResolutionWarnings;
 			}
 
-			// create a call trace view
-			try{
-				// remove previous subscription:
-				// const some = context.subscriptions.slice(3);
-				// for (let index = 0; index < some.length; index++) {
-				// 	const element = some[index];
-				// 	console.log(element);
-				// 	element.dispose();
-				// }
-				
+			try{				
 				console.log("CallTraceProvider");
-				if (callTrace)
+				// update the call trace view
+				if (callTrace){
 					vscode.commands.executeCommand('callTrace.refresh', callTrace);
-				// const callT = new CallTraceProvider(callTrace);
-				// const disposable = vscode.window.createTreeView('callTrace', {
-				// 	treeDataProvider: callT,
-				// });
-				// context.subscriptions.push(disposable);
-				vscode.commands.executeCommand('setContext', 'callTraceDefined', true);
+				} else {
+					vscode.commands.executeCommand('callTrace.refresh', null);
+				}
+				// set callTraceDefined = true => callTrace view is visible
+				vscode.commands.executeCommand('setContext', 'callTraceDefined', true).then(v => {
+					vscode.commands.executeCommand('callTrace.focus').then(() => {
+						console.log("callTrace should be at focus now");
+					});
+				});
 			} catch (e){
 				console.log("Couldn't create a tree view for call trace");
 				console.log(e);
 			}
 			
-			try{
-				// create a variables view
+			try{				
 				console.log("VariablesProvider");
-				const varP = new VariablesProvider(variables);
-				vars_disposable = vscode.window.createTreeView('variables', {
-					treeDataProvider: varP,
-				});
-				context.subscriptions.push(vars_disposable);
-				const VariablesItems  =	varP.getChildren();			
-				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
-					vars_disposable.reveal(VariablesItems ? VariablesItems[0] : null).then(() => {
-						console.log("just finished reveal");
+				// update the variables view
+				if (variables){
+					vscode.commands.executeCommand('variables.refresh', variables);
+				} else {
+					vscode.commands.executeCommand('variables.refresh', null);
+				}
+
+				try{
+					vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(async () => {
+						console.log("propertyChosen is set to true");
+						
+						// VIP: the following delay is required so that the 
+						// detailed-information container view is triggered on the first call						
+						if (!isDefined){
+							isDefined = true;
+							await delay(1000);
+							console.log("delay finished");
+						}
+						vscode.commands.executeCommand('variables.focus').then(() => {
+							console.log("focus on the variables view");
+						});
 					});
-				});
-				
+					
+				}  catch (e){
+					console.log("Couldn't focus on variables");
+					console.log(e);
+				}
 			} catch (e){
 				console.log("Couldn't create a tree view for variables");
 				console.log(e);
@@ -158,47 +197,40 @@ export function activate(context: vscode.ExtensionContext) {
 
 			if (assertMessages){
 				console.log("assertMessages");
-				let assertions = vscode.window.createOutputChannel("Assertions");
-				assertions.clear();
+				assertions.clear(); // clear previous messages
 				assertMessages.map((assertMsg: string) => {
-					//Write to output.
+					//Write to output
 					assertions.appendLine("[ASSERTION] " + assertMsg);
 				});			
 				assertions.show();
 			}
 
 			try{
-				// create a variables view
 				console.log("callResolutionWarningsProvider");
-				const callResolutionWarningsProvider = new CallResolutionWarningsProvider(callResolutionWarnings);
-				const call_warn_disposable = vscode.window.createTreeView('callResolutionWarnings', {
-					treeDataProvider: callResolutionWarningsProvider,
-				});
-				context.subscriptions.push(call_warn_disposable);	
+				// update the variables view
+				if (callResolutionWarnings){
+					vscode.commands.executeCommand('callResolutionWarnings.refresh', callResolutionWarnings);
+				} else {
+					vscode.commands.executeCommand('callResolutionWarnings.refresh', null);
+				}
 			
-				vscode.commands.executeCommand('setContext', 'propertyChosen', true);
+				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
+					vscode.commands.executeCommand('callResolutionWarnings.focus').then(() => {
+						console.log("focus on the callResolutionWarnings view");
+					});
+				});
 			} catch (e){
 				console.log("Couldn't create a tree view for callResolutionWarnings");
 				console.log(e);
 			}
-
 			// console.log(context);
 		}
 		
 	);
 
 	context.subscriptions.push(commandDisposal);
-	// console.log(context);
-	// console.log(context.subscriptions);
 
 	// TODO: diagnostics collection can be used for presenting the errors/warnings
 	// however, it has to be connected to a documented
-
-	// const jsonOutlineProvider = new JsonOutlineProvider(context);
-	// vscode.window.registerTreeDataProvider('jsonOutline', jsonOutlineProvider);
-	// vscode.commands.registerCommand('jsonOutline.refresh', () => jsonOutlineProvider.refresh());
-	// vscode.commands.registerCommand('jsonOutline.refreshNode', offset => jsonOutlineProvider.refresh(offset));
-	// vscode.commands.registerCommand('jsonOutline.renameNode', offset => jsonOutlineProvider.rename(offset));
-	// vscode.commands.registerCommand('extension.openJsonSelection', range => jsonOutlineProvider.select(range));
 
 }

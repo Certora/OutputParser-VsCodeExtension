@@ -9,7 +9,10 @@ export class CallResolutionWarningsProvider implements vscode.TreeDataProvider<C
 	constructor(private data: any) {
 	}
 
-	refresh(): void {
+	refresh(callResolutionWarningsData: any): void {
+		console.log("callResolutionWarnings Refreshed");
+		console.log(callResolutionWarningsData);
+		this.data = callResolutionWarningsData;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -134,5 +137,5 @@ export class CallResolutionWarningsItem extends vscode.TreeItem {
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
 	};
 
-	contextValue = 'callResolutionWarnings';
+	// contextValue = 'callResolutionWarnings';
 }

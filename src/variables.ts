@@ -9,7 +9,10 @@ export class VariablesProvider implements vscode.TreeDataProvider<VariablesItem>
 	constructor(private data: any) {
 	}
 
-	refresh(): void {
+	refresh(variablesData: any): void {
+		console.log("Refreshed the variables tree");
+		console.log(variablesData);
+		this.data = variablesData;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -100,5 +103,5 @@ export class VariablesItem extends vscode.TreeItem {
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
 	};
 
-	contextValue = 'variables';
+	// contextValue = 'variables';
 }
