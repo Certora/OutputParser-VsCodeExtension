@@ -35,9 +35,7 @@ This package uses following contribution points, activation events and APIs
 
 ## Running the Package
 
-- Open this example in VS Code Insiders
-- `npm install`
-- `npm run watch`
-- `F5` to start debugging
-- Spec outline (list of properties) view is shown in Package explorer view container in Activity bar.
-- When click on the property Detailed information view container should be shown (presenting a call trace, variables and a call resolution warnings views).
+- Copy certora-output-parser-{version}.vsix file into the orking directory
+- Run `code --install-extension .\certora-output-parser-{version}.vsix`
+
+
