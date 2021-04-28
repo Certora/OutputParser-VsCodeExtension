@@ -2,13 +2,19 @@
 
 This package provides following views
 
-- Spec outlin view
+- Spec outline view
 - Available contracts view
 - Call trace view
 - Variables view
 - Call resolution warnings view
 
 The last three are included in a new container view called detailed information
+
+
+## Running the Package
+
+- Copy certora-output-parser-{version}.vsix file into your current working directory
+- Run `code --install-extension certora-output-parser-{version}.vsix`
 
 
 ## VS Code API
@@ -30,12 +36,5 @@ This package uses following contribution points, activation events and APIs
 - `window.registerTreeDataProvider`
 - `TreeView`
 - `TreeDataProvider`
-
-
-
-## Running the Package
-
-- Copy certora-output-parser-{version}.vsix file into the orking directory
-- Run `code --install-extension .\certora-output-parser-{version}.vsix`
 
 
