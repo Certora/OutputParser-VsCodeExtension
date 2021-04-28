@@ -10,7 +10,9 @@ export class SpecOutlineProvider implements vscode.TreeDataProvider<SpecOutlineI
 	constructor(private data: any) {
 	}
 
-	refresh(): void {
+	refresh(data: any): void {
+		console.log("Refreshed the spec outline");
+		this.data = data;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -79,7 +81,7 @@ export class SpecOutlineProvider implements vscode.TreeDataProvider<SpecOutlineI
 					{
 						command: 'extension.showDetails',
 						title: 'show details',
-						arguments: [propertyResult.tableRow.ruleName]
+						arguments: [this.data, propertyResult.tableRow.ruleName]
 					}
 				);
 			}
@@ -125,7 +127,7 @@ export class SpecOutlineProvider implements vscode.TreeDataProvider<SpecOutlineI
 					{
 						command: 'extension.showDetails',
 						title: 'show details',
-						arguments: [funcName, element.ruleName]
+						arguments: [this.data, funcName, element.ruleName]
 					}
 				);
 			});

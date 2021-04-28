@@ -3,15 +3,17 @@ import * as path from 'path';
 
 export class AvailableContractsProvider implements vscode.TreeDataProvider<AvailableContractsItem> {
 
-	//private _onDidChangeTreeData: vscode.EventEmitter<AvailableContractsItem | undefined | void> = new vscode.EventEmitter<AvailableContractsItem | undefined | void>();
-	//readonly onDidChangeTreeData: vscode.Event<AvailableContractsItem | undefined | void> = this._onDidChangeTreeData.event;
+	private _onDidChangeTreeData: vscode.EventEmitter<AvailableContractsItem | undefined | void> = new vscode.EventEmitter<AvailableContractsItem | undefined | void>();
+	readonly onDidChangeTreeData: vscode.Event<AvailableContractsItem | undefined | void> = this._onDidChangeTreeData.event;
 
 	constructor(private data: any) {
 	}
 
-	/*refresh(): void {
+	refresh(data: any): void {
+		console.log("Refreshed the available contracts");
+		this.data = data;
 		this._onDidChangeTreeData.fire();
-	}*/
+	}
 
 	getTreeItem(element: AvailableContractsItem): AvailableContractsItem {
 		// console.log("AvailableContracts: getTreeItem()");

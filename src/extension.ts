@@ -8,14 +8,33 @@ import { SpecOutlineProvider } from './specOutline';
 import { AvailableContractsProvider } from './availableContracts';
 import { VariablesProvider } from './variables';
 import { CallResolutionWarningsProvider } from './callResolutionWarnings';
+import { CallResolutionProvider } from './callResolution';
 
 function delay(ms: number) {
     return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
+function getData(rootPath: string) : any {
+	// read the json file - expected to be in the working directory
+	const dataPath = rootPath + "/data.json";
+	const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+	return data;
+}
+
+function getMainProperties(data: any): Set<any> {
+	let main_properties = new Set();
+	if (data){
+		data.main_table.contractResult.map((contractResult: any) => {
+			let ruleName = contractResult.tableRow.ruleName;
+			main_properties.add(ruleName);
+		});
+	}
+	return main_properties;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
 	//console.log(context)
-	let isDefined = false;
+	// let isDefined = false;
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders){
 		vscode.window.showInformationMessage('No opened workspace...');
@@ -44,17 +63,11 @@ export async function activate(context: vscode.ExtensionContext) {
 		console.log(e);
 	}
 
-	// read the json file - expected to be in the working directory
-	const dataPath = rootPath + "/data.json";
-	const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+	const data = getData(rootPath);
 
 	let main_properties = new Set();
-	if (data){
-		data.main_table.contractResult.map((contractResult: any) => {
-			let ruleName = contractResult.tableRow.ruleName;
-			main_properties.add(ruleName);
-		});
-	}
+
+	main_properties = getMainProperties(data);
 
 	// define the availble contracts tree
 	const availableContractsTreeProvder = new AvailableContractsProvider(data);
@@ -62,10 +75,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	// When this extension is deactivated the disposables will be disposed
 	context.subscriptions.push(availableContractsDisposal);
 
+	vscode.commands.registerCommand('availableContracts.refresh', () => {
+		const data = getData(rootPath);
+		availableContractsTreeProvder.refresh(data);
+	});
+
 	// define the properties tree
 	const specTreeProvder = new SpecOutlineProvider(data);
 	const specTreeProviderDisposal = vscode.window.registerTreeDataProvider('specOutline', specTreeProvder);
 	context.subscriptions.push(specTreeProviderDisposal);
+
+	vscode.commands.registerCommand('specOutline.refresh', () => {
+		vscode.commands.executeCommand('setContext', 'callTraceDefined', false);
+		vscode.commands.executeCommand('setContext', 'propertyChosen', false);
+		const data = getData(rootPath);
+		specTreeProvder.refresh(data);
+		vscode.window.showInformationMessage(`Successfully refreshed spec outline.`);
+		vscode.commands.executeCommand('availableContracts.refresh').then(() =>
+		vscode.window.showInformationMessage(`Successfully refreshed available contracts.`));
+	});
 	try{
 		// vscode.commands.executeCommand('workbench.action.explorer.focus');
 		vscode.commands.executeCommand('specOutline.focus');
@@ -110,17 +138,31 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 	context.subscriptions.push(callResWarnsRefresh);
 
+	// Define a call resolution warnings tree provider
+	const callResolutionProvider = new CallResolutionProvider(null);
+	const callResDisposal = vscode.window.registerTreeDataProvider('callResolution', callResolutionProvider);
+	context.subscriptions.push(callResDisposal);
+
+	// Define a command to refresh the call resolution warnings tree
+	const callResRefresh = vscode.commands.registerCommand(
+		'callResolution.refresh', 
+		(callResolutionData: any) => callResolutionProvider.refresh(callResolutionData)
+	);
+	context.subscriptions.push(callResRefresh);
+
 	let assertions = vscode.window.createOutputChannel("Assertions");
 
 	const commandDisposal = vscode.commands.registerCommand(
 		'extension.showDetails', 
-		async (propertyName: string, ruleName?: string) => {
+		async (data: any, propertyName: string, ruleName?: string) => {
 			console.log("registerCommand");
 			console.log(propertyName);
 			let callTrace: any;
 			let variables: any;
 			let assertMessages: string[];
 			let callResolutionWarnings: any;
+			let callResolution: any;
+			let main_properties = getMainProperties(data);
 			
 			// fetch data
 			if (main_properties.has(propertyName)){
@@ -130,6 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				variables = results.variables;
 				assertMessages = results.assertMessage;
 				callResolutionWarnings = results.callResolutionWarningsTable?.callResolutionWarnings;
+				callResolution = results.callResolutionTable?.callResolution;
 			} else {
 				const st = data.sub_tables;
 				const parametricPropertyMethodsResults = st.functionResults.find((obj: any) => 
@@ -140,6 +183,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				variables = currentMethod.variables;
 				assertMessages = currentMethod.assertMessage;
 				callResolutionWarnings = currentMethod.callResolutionWarningsTable?.callResolutionWarnings;
+				callResolution = currentMethod.callResolutionTable?.callResolution;
 			}
 
 			try{				
@@ -176,11 +220,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						
 						// VIP: the following delay is required so that the 
 						// detailed-information container view is triggered on the first call						
-						if (!isDefined){
+						/*if (!isDefined){
 							isDefined = true;
 							await delay(1000);
 							console.log("delay finished");
-						}
+						}*/
 						vscode.commands.executeCommand('variables.focus').then(() => {
 							console.log("focus on the variables view");
 						});
@@ -223,6 +267,27 @@ export async function activate(context: vscode.ExtensionContext) {
 				console.log("Couldn't create a tree view for callResolutionWarnings");
 				console.log(e);
 			}
+
+
+			try{
+				console.log("callResolutionProvider");
+				// update the variables view
+				if (callResolution){
+					vscode.commands.executeCommand('callResolution.refresh', callResolution);
+				} else {
+					vscode.commands.executeCommand('callResolution.refresh', null);
+				}
+			
+				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
+					vscode.commands.executeCommand('callResolution.focus').then(() => {
+						console.log("focus on the callResolution view");
+					});
+				});
+			} catch (e){
+				console.log("Couldn't create a tree view for callResolution");
+				console.log(e);
+			}
+
 			// console.log(context);
 		}
 		

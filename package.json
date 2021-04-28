@@ -2,7 +2,7 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "Certora",
 	"enableProposedApi": true,
 	"engines": {
@@ -12,7 +12,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"workspaceContains:data.json"
+		"workspaceContains:data.json",
+		"workspaceContains:*.spec"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -28,6 +29,14 @@
 			{
 				"view": "callResolutionWarnings",
 				"contents": "No call resolution warnings were found"
+			},
+			{
+				"view": "callResolution",
+				"contents": "No call resolution was found"
+			},
+			{
+				"view": "specOutline",
+				"contents": "No property found. Make sure you have added a data.json file to your working directory, and press refresh."
 			}
 		],
 		"viewsContainers": {
@@ -61,6 +70,13 @@
 					"icon": "media/dep.svg",
 					"when": "propertyChosen",
 					"contextualTitle": "Call Resolution Warnings"
+				},
+				{
+					"id": "callResolution",
+					"name": "Call Resolution",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Call Resolution"
 				}
 			],
 			"explorer": [
@@ -78,8 +94,25 @@
 			{
 				"command": "extension.showDetails",
 				"title": "Show details"
+			},
+			{
+				"command": "specOutline.refresh",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
 			}
-		]
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "specOutline.refresh",
+					"group": "navigation",
+					"when": "view == specOutline"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
