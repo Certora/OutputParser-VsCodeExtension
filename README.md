@@ -15,6 +15,7 @@ The last three are included in a new container view called detailed information
 
 - Copy certora-output-parser-{version}.vsix file into your current working directory
 - Run `code --install-extension certora-output-parser-{version}.vsix`
+- If you encounter any problems, try to restart the editor.
 
 
 ## VS Code API
