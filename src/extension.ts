@@ -17,8 +17,14 @@ function delay(ms: number) {
 function getData(rootPath: string) : any {
 	// read the json file - expected to be in the working directory
 	const dataPath = rootPath + "/data.json";
-	const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-	return data;
+	try {
+		const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+		return data
+	} catch (e){
+		console.log("Couldn't read data.json file");
+		console.log(e.message);
+	}
+	return null;
 }
 
 function getMainProperties(data: any): Set<any> {
@@ -64,10 +70,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 
 	const data = getData(rootPath);
-
-	let main_properties = new Set();
-
-	main_properties = getMainProperties(data);
 
 	// define the availble contracts tree
 	const availableContractsTreeProvder = new AvailableContractsProvider(data);

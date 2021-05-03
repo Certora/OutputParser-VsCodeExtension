@@ -11,7 +11,6 @@ export class VariablesProvider implements vscode.TreeDataProvider<VariablesItem>
 
 	refresh(variablesData: any): void {
 		console.log("Refreshed the variables tree");
-		console.log(variablesData);
 		this.data = variablesData;
 		this._onDidChangeTreeData.fire();
 	}
@@ -19,6 +18,9 @@ export class VariablesProvider implements vscode.TreeDataProvider<VariablesItem>
 	getTreeItem(element: VariablesItem): VariablesItem {
 		// console.log("VariablesProvider: getTreeItem");
 		// console.log(element);
+		const iconPath = this.getIcon(element);
+		if (iconPath)
+			element.iconPath = iconPath;
 		return element;
 	}
 	
@@ -83,6 +85,16 @@ export class VariablesProvider implements vscode.TreeDataProvider<VariablesItem>
 		return null;
 	}
 
+	private getIcon(element: VariablesItem): any {
+		if (element.collapsibleState != vscode.TreeItemCollapsibleState.None) {
+			return {
+				light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
+				dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
+			};
+		}
+		return null;
+	}
+
 }
 
 export class VariablesItem extends vscode.TreeItem {
@@ -98,10 +110,10 @@ export class VariablesItem extends vscode.TreeItem {
 		//this.description = `${this.returnValue}`;//"no description";
 	}
 
-	iconPath = {
+	/*iconPath = {
 		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+	};*/
 
 	// contextValue = 'variables';
 }

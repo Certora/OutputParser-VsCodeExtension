@@ -18,7 +18,9 @@ export class AvailableContractsProvider implements vscode.TreeDataProvider<Avail
 	getTreeItem(element: AvailableContractsItem): AvailableContractsItem {
 		// console.log("AvailableContracts: getTreeItem()");
 		// console.log(element);
-		element.iconPath = this.getIcon(element);
+		const iconPath = this.getIcon(element);
+		if (iconPath)
+			element.iconPath = iconPath;
 		return element;
 	}
 	
@@ -130,12 +132,14 @@ export class AvailableContractsProvider implements vscode.TreeDataProvider<Avail
 				light: path.join(__filename, '..', '..', 'resources', 'light', 'document.svg'),
 				dark: path.join(__filename, '..', '..', 'resources', 'dark', 'document.svg')
 			};
-		} else {
+		}
+		/* else {
 			return {
 				light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
 				dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
 			};
-		}
+		}*/
+		return null;
 	}
 }
 
@@ -148,15 +152,15 @@ export class AvailableContractsItem extends vscode.TreeItem {
 		public readonly address?: string
 	) {
 		super(name, collapsibleState);
-
+		//this.resourceUri = vscode.workspace.workspaceFolders[0].uri;
 		this.tooltip = `${this.name}`;
 		this.description = this.address ? `address: ${this.address}` : ``;
 	}
 
-	iconPath = {
+	/*iconPath = {
 		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+	};*/
 
 	contextValue = 'availableContracts';
 }

@@ -2,7 +2,7 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"publisher": "Certora",
 	"enableProposedApi": true,
 	"engines": {

@@ -11,7 +11,6 @@ export class CallResolutionProvider implements vscode.TreeDataProvider<CallResol
 
 	refresh(callResolutionData: any): void {
 		console.log("callResolution Refreshed");
-		console.log(callResolutionData);
 		this.data = callResolutionData;
 		this._onDidChangeTreeData.fire();
 	}
@@ -19,6 +18,9 @@ export class CallResolutionProvider implements vscode.TreeDataProvider<CallResol
 	getTreeItem(element: CallResolutionItem): CallResolutionItem {
 		// console.log("CallResolutionWarningsProvider");
 		// console.log(element);
+		const iconPath = this.getIcon(element);
+		if (iconPath)
+			element.iconPath = iconPath;
 		return element;
 	}
 	
@@ -93,6 +95,16 @@ export class CallResolutionProvider implements vscode.TreeDataProvider<CallResol
 		}
 	}
 
+	private getIcon(element: CallResolutionItem): any {
+		if (element.collapsibleState != vscode.TreeItemCollapsibleState.None) {
+			return {
+				light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
+				dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
+			};
+		}
+		return null;
+	}
+
 }
 
 export class CallResolutionItem extends vscode.TreeItem {	
@@ -107,10 +119,10 @@ export class CallResolutionItem extends vscode.TreeItem {
 		//this.description = "no description";
 	}
 
-	iconPath = {
+	/*iconPath = {
 		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
 		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+	};*/
 
 	// contextValue = 'callResolution';
 }
