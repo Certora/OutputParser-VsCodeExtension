@@ -38,7 +38,7 @@ function getMainProperties(data: any): Set<any> {
 	return main_properties;
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	//console.log(context)
 	// let isDefined = false;
 	const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -106,25 +106,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	
 
-	// Define a call trace tree provider
-	const callTraceProvider = new CallTraceViewProvider(context.extensionUri, null);
+	// Define a call trace webview provider
+	let callTraceProvider = new CallTraceViewProvider(context.extensionUri, null);
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(CallTraceViewProvider.viewType, callTraceProvider));
-	// const callTraceProvider = new CallTraceProvider(null);
-	// const callTraceProviderDisposal = vscode.window.registerTreeDataProvider('callTrace', callTraceProvider);
-	// context.subscriptions.push(callTraceProviderDisposal);
 	
-	// Define a command to refresh the call trace tree
+	// Define a command to refresh the call trace
 	const callTraceRefresh = vscode.commands.registerCommand(
 		'callTrace.refresh', 
-		(callTraceData: any) => callTraceProvider.refresh(callTraceData)
+		(callTraceData: any) => {
+			try{
+			callTraceProvider.refresh(callTraceData);
+			} catch (e){
+				console.log("error on refresh");
+				console.log(e);
+			}
+		}
 	);
 	context.subscriptions.push(callTraceRefresh);
-	// const callTraceRefresh = vscode.commands.registerCommand(
-	// 	'callTrace.refresh', 
-	// 	(callTraceData: any) => callTraceProvider.refresh(callTraceData)
-	// );
-	// context.subscriptions.push(callTraceRefresh);
 
 	// Define a variables tree provider
 	const varsProvider = new VariablesProvider(null);
@@ -200,30 +199,31 @@ export async function activate(context: vscode.ExtensionContext) {
 			
 			try{				
 				console.log("CallTraceProvider");
-				/*const provider = new CallTraceViewProvider(context.extensionUri, callTrace);
-				context.subscriptions.push(
-					vscode.window.registerWebviewViewProvider(CallTraceViewProvider.viewType, provider));*/
 				// update the call trace view
 				if (callTrace){
 					vscode.commands.executeCommand('callTrace.refresh', callTrace).then(v => {
-						/*vscode.commands.executeCommand('callTrace.focus').then(() => {
-							console.log("callTrace should be at focus now");
-						});*/
+						// set callTraceDefined = true => callTrace view is visible
 						vscode.commands.executeCommand('setContext', 'callTraceDefined', true).then(v => {
-						
-						console.log("waited enough");
+							vscode.commands.executeCommand('callTrace.focus').then(() => {
+								console.log("callTrace should be at focus now");
+							});
 						});
-					});
-				} //else {
-				//	vscode.commands.executeCommand('callTrace.refresh', null);
-				//}
-				// set callTraceDefined = true => callTrace view is visible
-				//vscode.commands.executeCommand('setContext', 'callTraceDefined', true).then(v => {
-					/*vscode.commands.executeCommand('callTrace.focus').then(() => {
-						console.log("callTrace should be at focus now");
-					});*/
-				//	console.log("waited enough");
-				//});
+					}).then(undefined, err => {
+						console.error('Error occurred');
+						console.log(err.message);
+					 });
+				} else {
+					vscode.commands.executeCommand('callTrace.refresh', null).then(v => {
+						// set callTraceDefined = false => callTrace view is hidden
+						// vscode.commands.executeCommand('setContext', 'callTraceDefined', false).then(v => {
+						// 	console.log("invisible calltrace");
+						// });
+					}).then(undefined, err => {
+						console.error('Error occurred when running callTrace.refresh with null');
+						console.log(err.message);
+					 });
+				}
+				
 			} catch (e){
 				console.log("Couldn't create a tree view for call trace");
 				console.log(e);
@@ -322,7 +322,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// TODO: diagnostics collection can be used for presenting the errors/warnings
 	// however, it has to be connected to a documented
 
-	let openWebview = vscode.commands.registerCommand('exampleApp.openWebview', () => {
+	/*let openWebview = vscode.commands.registerCommand('exampleApp.openWebview', () => {
 		const panel = vscode.window.createWebviewPanel(
 		'openWebview', // Identifies the type of the webview. Used internally
 		'Example Page', // Title of the panel displayed to the user
@@ -333,22 +333,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		);
 		panel.webview.html = getWebviewContent();
 	});
-	context.subscriptions.push(openWebview);
+	context.subscriptions.push(openWebview);*/
 	
 
 }
-
-function getWebviewContent() {
-	return `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-	  <meta charset="UTF-8">
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <title>Example Webview</title>
-  </head>
-  <body>
-	 <h1>This works!</h1>
-	  //Add some custom HTML here
-  </body>
-  </html>`;
-  }

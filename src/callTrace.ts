@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 
-	public static readonly viewType = 'callTrace.colorsView';
+	public static readonly viewType = 'callTrace';
 
 	private _view?: vscode.WebviewView;
 
@@ -31,7 +31,7 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-		webviewView.webview.onDidReceiveMessage(data => {
+		/*webviewView.webview.onDidReceiveMessage(data => {
 			switch (data.type) {
 				case 'colorSelected':
 					{
@@ -39,10 +39,10 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 						break;
 					}
 			}
-		});
+		});*/
 	}
 
-	public addColor() {
+	/*public addColor() {
 		if (this._view) {
 			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
 			this._view.webview.postMessage({ type: 'addColor' });
@@ -53,7 +53,7 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'clearColors' });
 		}
-	}
+	}*/
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
@@ -122,7 +122,7 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 			if (children && children.length > 0){
                 const div_id = `level-` + this.i.toString();				
 				this.i++;
-                callTrace += `<a class="call-trace-parent collapsible" data-target="${div_id}">${txt}`;
+                callTrace += `<a class="call-trace-parent collapsible" title="click to expand" data-target="${div_id}">${txt}`;
 				if (status){
 					callTrace += ` <span class="badge ${clsName}">${status}</span>`;
 				}
@@ -153,8 +153,14 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 
 	refresh(callTraceData: any): void {
 		console.log("callTrace Refreshed");
+		try{
 		this._callTrace = callTraceData;
-		this._view.webview.html = this._getHtmlForWebview(this._view.webview);
+		if (this._view)
+			this._view.webview.html = this._getHtmlForWebview(this._view.webview);
+		} catch (e){
+			console.log("inside refresh");
+			console.log(e);
+		}
 		// this._onDidChangeTreeData.fire();
 	}
 }

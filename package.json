@@ -2,9 +2,8 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.1.2",
+	"version": "0.1.5",
 	"publisher": "Certora",
-	"enableProposedApi": true,
 	"engines": {
 		"vscode": "^1.52.0"
 	},
@@ -50,11 +49,11 @@
 		},
 		"views": {
 			"detailed-information": [
-				
 				{
 					"type": "webview",
-					"id": "callTrace.colorsView",
-					"name": "Call trace"
+					"id": "callTrace",
+					"name": "Call trace",
+					"when": "callTraceDefined"
 				},
 				{
 					"id": "variables",
