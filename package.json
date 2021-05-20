@@ -1,0 +1,131 @@
+{
+	"name": "certora-output-parser",
+	"displayName": "Certora output parser",
+	"description": "Presents Certora verification results",
+	"version": "0.1.9",
+	"publisher": "Certora",
+	"engines": {
+		"vscode": "^1.50.0"
+	},
+	"extensionKind": [
+		"ui",
+		"workspace"
+	],
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onView:renectJobsView",
+		"onCommand:calicoColors.addColor",
+		"onCommand:calicoColors.clearColors"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Certora/OutputParser-VsCodeExtension.git"
+	},
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "callTrace",
+				"contents": "No call trace found. Make sure you've chosen a violated property"
+			},
+			{
+				"view": "variables",
+				"contents": "No variables were found. Make sure you've chosen a violated property"
+			},
+			{
+				"view": "callResolutionWarnings",
+				"contents": "No call resolution warnings were found"
+			},
+			{
+				"view": "callResolution",
+				"contents": "No call resolution was found"
+			},
+			{
+				"view": "specOutline",
+				"contents": "No property found..."
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "detailed-information",
+					"title": "Detailed Information",
+					"icon": "media/dep.svg"
+				}
+			]
+		},
+		"views": {
+			"detailed-information": [
+				{
+					"type": "webview",
+					"id": "callTrace",
+					"name": "Call trace",
+					"when": "callTraceDefined"
+				},
+				{
+					"id": "variables",
+					"name": "Variables",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Variables"
+				},
+				{
+					"id": "callResolutionWarnings",
+					"name": "Call Resolution Warnings",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Call Resolution Warnings"
+				},
+				{
+					"id": "callResolution",
+					"name": "Call Resolution",
+					"icon": "media/dep.svg",
+					"when": "propertyChosen",
+					"contextualTitle": "Call Resolution"
+				}
+			],
+			"explorer": [
+				{
+					"type": "webview",
+					"id": "renectJobsView",
+					"name": "Recent Job List"
+				},
+				{
+					"id": "specOutline",
+					"name": "Spec Outline"
+				},
+				{
+					"id": "availableContracts",
+					"name": "Available Contracts"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "recent.addJob",
+				"category": "recent jobs",
+				"title": "Add Job",
+				"icon": "$(add)"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint . --ext .ts,.tsx",
+		"watch": "tsc -w -p ./"
+	},
+	"dependencies": {
+		"axios": "^0.21.1"
+	},
+	"devDependencies": {
+		"@types/node": "^12.12.0",
+		"@types/vscode": "^1.50.0",
+		"@typescript-eslint/eslint-plugin": "^4.16.0",
+		"@typescript-eslint/parser": "^4.16.0",
+		"eslint": "^7.21.0",
+		"typescript": "^4.2.2"
+	}
+}
