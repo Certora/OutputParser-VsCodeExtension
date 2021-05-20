@@ -2,41 +2,29 @@ body {
 	background-color: transparent;
 }
 
-.color-list {
-	list-style: none;
-	padding: 0;
-}
-
-.color-entry {
-	width: 100%;
-	display: flex;
-	margin-bottom: 0.4em;
-	border: 1px solid var(--vscode-input-border);
-}
-
-.color-preview {
-	width: 2em;
-	height: 2em;
-}
-
-.color-preview:hover {
-	outline: inset white;
-}
-
-.color-input {
-	display: block;
-	flex: 1;
-	width: 100%;
-	color: var(--vscode-input-foreground);
-	background-color: var(--vscode-input-background);
-	border: none;
-	padding: 0 0.6em;
-}
-
-.add-color-button {
+#add-job-button {
 	display: block;
 	border: none;
 	margin: 0 auto;
+}
+
+.list-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.list-group-item-action {
+	position: relative;
+    display: block;
+    padding: .75rem 1rem;
+}
+
+.list-group-item-action:active,
+.list-group-item-action:hover,
+.list-group-item-action.active {
+    /*background-color: rgba(1,1,1,0.2);*/
+	background-color: var(--vscode-list-activeSelectionBackground); /*#094771*/
+    color: white;
 }
 
 
@@ -75,13 +63,6 @@ body {
     white-space: break-spaces;
     cursor: pointer;
 }
-
-/*.call-trace-parent:hover, 
-.call-trace-parent:active,
-.call-trace-child:hover,
-.call-trace-child:active {
-	border: none;
-}*/
 
 .call-trace-parent:before {
     content: "";

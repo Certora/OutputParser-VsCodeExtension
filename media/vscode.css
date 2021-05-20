@@ -32,6 +32,7 @@ form > * {
 
 a {
 	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
 }
 
 a:hover,

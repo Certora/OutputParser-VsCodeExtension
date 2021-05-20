@@ -2,18 +2,25 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.1.5",
+	"version": "0.1.9",
 	"publisher": "Certora",
 	"engines": {
-		"vscode": "^1.52.0"
+		"vscode": "^1.50.0"
 	},
+	"extensionKind": [
+		"ui",
+		"workspace"
+	],
 	"categories": [
 		"Other"
 	],
 	"activationEvents": [
-		"workspaceContains:data.json",
-		"workspaceContains:*.spec"
+		"onView:renectJobsView"
 	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Certora/OutputParser-VsCodeExtension.git"
+	},
 	"main": "./out/extension.js",
 	"contributes": {
 		"viewsWelcome": [
@@ -35,7 +42,7 @@
 			},
 			{
 				"view": "specOutline",
-				"contents": "No property found. Make sure you have added a data.json file to your working directory, and press refresh."
+				"contents": "No property found..."
 			}
 		],
 		"viewsContainers": {
@@ -79,6 +86,11 @@
 			],
 			"explorer": [
 				{
+					"type": "webview",
+					"id": "renectJobsView",
+					"name": "Recent Job List"
+				},
+				{
 					"id": "specOutline",
 					"name": "Spec Outline"
 				},
@@ -104,6 +116,12 @@
 			{
 				"command": "exampleApp.openWebview",
 				"title": "Open webview"
+			},
+			{
+				"command": "recent.addJob",
+				"category": "recent jobs",
+				"title": "Add Job",
+				"icon": "$(add)"
 			}
 		],
 		"menus": {
@@ -121,6 +139,9 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint . --ext .ts,.tsx"
+	},
+	"dependencies": {
+		"axios": "^0.21.1"
 	},
 	"devDependencies": {
 		"@types/node": "^12.12.0",

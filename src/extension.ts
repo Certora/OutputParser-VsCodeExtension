@@ -1,31 +1,12 @@
-'use strict';
-
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-
-import { CallTraceViewProvider } from './callTrace';
-import { SpecOutlineProvider } from './specOutline';
 import { AvailableContractsProvider } from './availableContracts';
-import { VariablesProvider } from './variables';
-import { CallResolutionWarningsProvider } from './callResolutionWarnings';
 import { CallResolutionProvider } from './callResolution';
+import { CallResolutionWarningsProvider } from './callResolutionWarnings';
+import { CallTraceViewProvider } from './callTrace';
+import { RecentJobsViewProvider } from './recent';
+import { SpecOutlineProvider } from './specOutline';
+import { VariablesProvider } from './variables';
 
-function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
-}
-
-function getData(rootPath: string) : any {
-	// read the json file - expected to be in the working directory
-	const dataPath = rootPath + "/data.json";
-	try {
-		const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-		return data
-	} catch (e){
-		console.log("Couldn't read data.json file");
-		console.log(e.message);
-	}
-	return null;
-}
 
 function getMainProperties(data: any): Set<any> {
 	let main_properties = new Set();
@@ -38,73 +19,31 @@ function getMainProperties(data: any): Set<any> {
 	return main_properties;
 }
 
+
 export function activate(context: vscode.ExtensionContext) {
-	//console.log(context)
-	// let isDefined = false;
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders){
-		vscode.window.showInformationMessage('No opened workspace...');
-		return
-	}
-	const root = workspaceFolders[0];
-	const rootPath = root.uri.fsPath;
-	console.log(rootPath);
-	
-	try{
-		// open the spec file in the editor
-		vscode.workspace.findFiles('*/*.spec').then((specFilesList) => {
-			if (specFilesList && specFilesList.length > 0){
-				const foundFile = specFilesList[0];
-
-				var openPath = vscode.Uri.file(foundFile.path);
-				vscode.workspace.openTextDocument(openPath).then(doc => {
-					vscode.window.showTextDocument(doc);
-				});
-			} else {
-				console.log("Couldn't find a spec file")
-			}
-		});
-	} catch (e){
-		console.log("Couldn't open the spec file");
-		console.log(e);
-	}
-
-	const data = getData(rootPath);
-
 	// define the availble contracts tree
-	const availableContractsTreeProvder = new AvailableContractsProvider(data);
+	const availableContractsTreeProvder = new AvailableContractsProvider(null);
 	const availableContractsDisposal = vscode.window.registerTreeDataProvider('availableContracts', availableContractsTreeProvder);
 	// When this extension is deactivated the disposables will be disposed
 	context.subscriptions.push(availableContractsDisposal);
 
-	vscode.commands.registerCommand('availableContracts.refresh', () => {
-		const data = getData(rootPath);
+	vscode.commands.registerCommand('availableContracts.refresh', (data) => {
 		availableContractsTreeProvder.refresh(data);
 	});
 
 	// define the properties tree
-	const specTreeProvder = new SpecOutlineProvider(data);
+	const specTreeProvder = new SpecOutlineProvider(null);
 	const specTreeProviderDisposal = vscode.window.registerTreeDataProvider('specOutline', specTreeProvder);
 	context.subscriptions.push(specTreeProviderDisposal);
 
-	vscode.commands.registerCommand('specOutline.refresh', () => {
+	vscode.commands.registerCommand('specOutline.refresh', (data) => {
 		vscode.commands.executeCommand('setContext', 'callTraceDefined', false);
 		vscode.commands.executeCommand('setContext', 'propertyChosen', false);
-		const data = getData(rootPath);
 		specTreeProvder.refresh(data);
 		vscode.window.showInformationMessage(`Successfully refreshed spec outline.`);
-		vscode.commands.executeCommand('availableContracts.refresh').then(() =>
+		vscode.commands.executeCommand('availableContracts.refresh', data).then(() =>
 		vscode.window.showInformationMessage(`Successfully refreshed available contracts.`));
 	});
-	try{
-		// vscode.commands.executeCommand('workbench.action.explorer.focus');
-		vscode.commands.executeCommand('specOutline.focus');
-	}  catch (e){
-		console.log("Couldn't focus on specOutline view");
-		console.log(e);
-	}
-
-	
 
 	// Define a call trace webview provider
 	let callTraceProvider = new CallTraceViewProvider(context.extensionUri, null);
@@ -116,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 		'callTrace.refresh', 
 		(callTraceData: any) => {
 			try{
-			callTraceProvider.refresh(callTraceData);
+				callTraceProvider.refresh(callTraceData);
 			} catch (e){
 				console.log("error on refresh");
 				console.log(e);
@@ -283,9 +222,10 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			
 				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
-					vscode.commands.executeCommand('callResolutionWarnings.focus').then(() => {
+					/*vscode.commands.executeCommand('callResolutionWarnings.focus').then(() => {
 						console.log("focus on the callResolutionWarnings view");
-					});
+					});*/
+					console.log("focus on the callResolutionWarnings view");
 				});
 			} catch (e){
 				console.log("Couldn't create a tree view for callResolutionWarnings");
@@ -303,9 +243,10 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			
 				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
-					vscode.commands.executeCommand('callResolution.focus').then(() => {
+					/*vscode.commands.executeCommand('callResolution.focus').then(() => {
 						console.log("focus on the callResolution view");
-					});
+					});*/
+					console.log("focus on the callResolution view");
 				});
 			} catch (e){
 				console.log("Couldn't create a tree view for callResolution");
@@ -319,21 +260,31 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(commandDisposal);
 
-	// TODO: diagnostics collection can be used for presenting the errors/warnings
-	// however, it has to be connected to a documented
 
-	/*let openWebview = vscode.commands.registerCommand('exampleApp.openWebview', () => {
-		const panel = vscode.window.createWebviewPanel(
-		'openWebview', // Identifies the type of the webview. Used internally
-		'Example Page', // Title of the panel displayed to the user
-		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-		{ // Enable scripts in the webview
-			enableScripts: true //Set this to true if you want to enable Javascript. 
-		}
-		);
-		panel.webview.html = getWebviewContent();
-	});
-	context.subscriptions.push(openWebview);*/
+	const recentJobsprovider = new RecentJobsViewProvider(context.extensionUri);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(RecentJobsViewProvider.viewType, recentJobsprovider));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('recent.addJob', async () => {
+			let jobId = await vscode.window.showInputBox({ placeHolder: 'Job id?' });
+			if (jobId) {
+				console.log('jobId:' + jobId);
+				let isDev;
+				let prod = await vscode.window.showInputBox({ placeHolder: 'Production? type n/y or press Escape' });
+				console.log(prod);
+				if ( !prod || prod == "n")
+					isDev = true;
+				else if (prod != "y"){
+					vscode.window.showErrorMessage("Wrong parameter supplied");
+					return;
+				}
+				recentJobsprovider.addJob(jobId, isDev);
+			}
+		}));
 	
-
 }
+
+
+

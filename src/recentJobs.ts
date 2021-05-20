@@ -1,23 +1,41 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 
-export class CallTraceViewProvider implements vscode.WebviewViewProvider {
+export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 
-	public static readonly viewType = 'callTrace';
+	public static readonly viewType = 'recentJobs';
 
 	private _view?: vscode.WebviewView;
 
-	private i : number = 0;
+	private _jobs : [{}];
 
 	constructor(
-		private readonly _extensionUri: vscode.Uri,
-		private _callTrace: any, //: { [key: string]: string, ["childrenList": string] : [] } ,
-	) { }
+		private readonly _extensionUri: vscode.Uri
+		//private _callTrace: { [x: string]: any; }, //: { [key: string]: string, ["childrenList": string] : [] } ,
+	) { 
+
+		// console.log(process.env.CERTORA);
+		const certora_path = process.env.CERTORA;
+		try {
+			const jobs = JSON.parse(fs.readFileSync(certora_path + "/recent_jobs.json", 'utf-8'));
+			console.log("recent jobs");
+			jobs.forEach((job: JSON) => {
+				console.log(job);
+			});
+			this._jobs = jobs;
+		} catch (e){
+			console.log("Couldn't read recent_jobs file");
+			console.log(e.message);
+		}
+
+	}
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
 		context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
 	) {
+		console.log("resolve");
 		this._view = webviewView;
 
 		webviewView.webview.options = {
@@ -31,15 +49,66 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-		/*webviewView.webview.onDidReceiveMessage(data => {
+		webviewView.webview.onDidReceiveMessage(data => {
+			// const axios = require('axios');
 			switch (data.type) {
 				case 'colorSelected':
 					{
 						vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`#${data.value}`));
 						break;
 					}
+				case 'jobSelected':
+					{
+						console.log(data.value);
+						console.log(process.env.CERTORAKEY);
+						// Make a request for a user with a given ID
+						/*axios.get('https://vaas-stg.certora.com/jobsData', 
+						{ params: {
+							jobId: data.value,
+							certoraKey: process.env.CERTORAKEY}
+						}).then(function (resp: any) {
+							// handle success																																											
+							console.log(resp);
+							if (resp.status == 200){
+								const d = resp.data;
+								if (d.success){  // on success
+									if (d.userJobsList.length > 0){
+										const found_job = d.userJobsList[0]; // should be a single job
+										data_url = `${found_job.outputUrl}data.json?anonymousKey=${found_job.anonymousKey}`;
+									} else if(d.missingOutput.length1 > 0){  // requested job is missing the output
+										console.log("Missing");
+									}
+								} else {
+									console.log(d.errorString);
+								}
+							} else {
+								console.log("ERROR. status code is " + resp.status);
+							}
+						}).catch(function (error: any) {
+							// handle error
+							console.log(error);
+						}).then(function () {
+							// always executed
+							console.log("the always part");
+							if (data_url){								
+								// Make a request for a user with a given ID
+								axios.get(data_url).then(function (response: any) {
+									// handle success
+									console.log(response);
+								}).catch(function (error: any) {
+									// handle error
+									console.log(error);
+								}).then(function () {
+									// always executed
+								});
+							} else {
+								console.log("Empty data url");
+							}
+						});*/
+						break;
+					}
 			}
-		});*/
+		});
 	}
 
 	/*public addColor() {
@@ -56,8 +125,9 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 	}*/
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
+		console.log("_gethtml");
 		// Get the local path to main script run in the webview, then convert it to a uri we can use in the webview.
-		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'callTrace.js'));
+		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
 
 		// Do the same for the stylesheet.
 		const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
@@ -67,7 +137,19 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 		// Use a nonce to only allow a specific script to be run.
 		const nonce = getNonce();
 
-		const callTrace = this.callTraceItem();
+		let recent_jobs = `<div id="links" class="list-group">`;
+
+		this._jobs.forEach((job: any) => {
+			console.log(job);
+			recent_jobs += `<a class="clicks list-group-item list-group-item-action`;
+			if (job.isDev)
+				recent_jobs += ` dev`;
+			recent_jobs += `" id="${job.jobId}" class="recent-job">${job.jobId}`;
+			if (job.notifyMsg)
+				recent_jobs += ` - ${job.notifyMsg}`;
+			recent_jobs += `</a>`;
+		});
+		recent_jobs += `</div>`;
         
         // console.log(nonce);
         // console.log(webview.cspSource);
@@ -94,67 +176,21 @@ export class CallTraceViewProvider implements vscode.WebviewViewProvider {
 				<link href="${styleVSCodeUri}" rel="stylesheet">
 				<link href="${styleMainUri}" rel="stylesheet">
 				
-				<title>Call Trace</title>
+				<title>Recent Jobs</title>
 			</head>
 			<body>
-                <div>${callTrace}</div>
-				<script nonce="${nonce}" src="${scriptUri}"></script>
+                <h2>Recent jobs</h2>
+				<ul id="recent_jobs"></ul>
+				${recent_jobs}
+				
 			</body>
 			</html>`;
-	}
-
-	private callTraceItem(d?: any){
-		let callTrace = ``;
-		if (d == null){
-			d = this._callTrace;
-		}
-        if (d){
-            callTrace += `<div class="level">`;
-            const children = d.hasOwnProperty("childrenList") ? d["childrenList"] : [];
-            
-			const name = d.hasOwnProperty('funcName') ? d["funcName"] : "Unknown";
-            const returnValue = d.hasOwnProperty('returnValue') ? d["returnValue"] : "";
-            const status = d.hasOwnProperty('status') ? d["status"] : "UNKNOWN";
-
-			const txt = `${name}` + (returnValue ? ` / ${returnValue}` : ``);
-
-			const clsName = getClass(status);
-			if (children && children.length > 0){
-                const div_id = `level-` + this.i.toString();				
-				this.i++;
-                callTrace += `<a class="call-trace-parent collapsible" title="click to expand" data-target="${div_id}">${txt}`;
-				if (status){
-					callTrace += ` <span class="badge ${clsName}">${status}</span>`;
-				}
-				callTrace += `</a>`;
-                callTrace += `<div id="${div_id}" class="collapse">`
-
-				for(var j = 0; j < children.length; j++){
-					callTrace += this.callTraceItem(children[j]);
-				}
-				
-				callTrace += `</div>`;
-            } else {
-				callTrace += `<span class="call-trace-child">${txt}`;
-				if (status){
-					callTrace += ` <span class="badge ${clsName}">${status}</span>`;
-				}
-				callTrace += `</span>`;
-			}
-
-			callTrace += `</div>`;
-			
-        } else {
-			return `Not found`;
-		}
-
-		return callTrace;
 	}
 
 	refresh(callTraceData: any): void {
 		console.log("callTrace Refreshed");
 		try{
-		this._callTrace = callTraceData;
+		// this._callTrace = callTraceData;
 		if (this._view)
 			this._view.webview.html = this._getHtmlForWebview(this._view.webview);
 		} catch (e){
