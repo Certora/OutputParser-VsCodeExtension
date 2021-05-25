@@ -268,19 +268,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('recent.addJob', async () => {
-			let jobId = await vscode.window.showInputBox({ placeHolder: 'Job id?' });
-			if (jobId) {
-				console.log('jobId:' + jobId);
-				let isDev;
-				let prod = await vscode.window.showInputBox({ placeHolder: 'Production? type n/y or press Escape' });
-				console.log(prod);
-				if ( !prod || prod == "n")
-					isDev = true;
-				else if (prod != "y"){
-					vscode.window.showErrorMessage("Wrong parameter supplied");
-					return;
+			let output_url = await vscode.window.showInputBox({ placeHolder: 'Output url' });
+			const data = "data.json";
+			if (output_url) {
+				console.log('output_url:' + output_url);
+				let msg = await vscode.window.showInputBox({ placeHolder: 'Message? type the message or press Escape' });
+				console.log(msg);
+				const args_index = output_url.indexOf("?");
+				if (args_index != -1){
+					const url = output_url.slice(0, args_index);
+					const args = output_url.slice(args_index);	
+					const data_url = url + data + args;
+					recentJobsprovider.addJob(data_url, msg);
+				} else if(output_url.endsWith("/")){  // no anonymous key
+					recentJobsprovider.addJob(output_url + data, msg);
+				}else {
+					vscode.window.showErrorMessage("Wrong output url format...")
 				}
-				recentJobsprovider.addJob(jobId, isDev);
 			}
 		}));
 	

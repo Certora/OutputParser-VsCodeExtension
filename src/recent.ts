@@ -22,8 +22,26 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 		try {
 			const jobs = JSON.parse(fs.readFileSync(this._recent_path, 'utf-8'));
 			console.log("recent jobs");
+			const data = "data.json";
 			jobs.forEach((job: any) => {
 				console.log(job);
+				if (job.output_url) {
+					if (!job.output_url.includes(data)){
+						console.log('output_url:' + job.output_url);
+						const args_index = job.output_url.indexOf("?");
+						if (args_index != -1){
+							const url = job.output_url.slice(0, args_index);
+							const args = job.output_url.slice(args_index);	
+							job.output_url = url + data + args;
+						} else if(job.output_url.endsWith("/")){  // no anonymous key
+							job.output_url += data;
+						}else {
+							vscode.window.showErrorMessage("Wrong output url format...");
+						}
+					}
+				} else {
+					vscode.window.showErrorMessage("Missing output url...");
+				}
 			});
 			this._jobs = jobs;
 		} catch (e){
@@ -63,8 +81,6 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 
 		webviewView.webview.onDidReceiveMessage(data => {
 			const axios = require('axios');
-			let data_url: string;
-			// console.log(data);
 
 			switch (data.type) {
 				case 'addJob':
@@ -75,41 +91,36 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 				case 'jobSelected':
 					{
 						console.log(data.value);
-						console.log(process.env.CERTORAKEY);
-						vscode.window.showInformationMessage(`Searching for job with id=${data.value}`);
-						const isDev = data.dev;
-						data_url = `${getUrl(isDev)}/jobsData`;
-						axios.get(data_url, 
+						// console.log(process.env.CERTORAKEY);
+						// vscode.window.showInformationMessage(`Searching for job with id=${data.value}`);
+						const output_url = data.output_url;
+						const jobId = data.value;
+						const msg = data.msg;
+						vscode.window.showInformationMessage(`Gettings job results...`);
+						axios.get(output_url, 
 						{ params: {
-							jobId: data.value,
 							certoraKey: process.env.CERTORAKEY}
-						}).then(function (resp: any) {
-							// handle success																																											
-							console.log(resp);
-							if (resp.status == 200){
-								const d = resp.data;
-								if (d.success){  // on success
-									if (d.userJobsList.length > 0){
-										const found_job = d.userJobsList[0]; // should be a single job
-										if (found_job.jobStatus == "SUCCEEDED" || found_job.jobStatus == "FAILED"){
-											data_url = `${found_job.outputUrl}data.json?anonymousKey=${found_job.anonymousKey}`;
-											if(found_job.jobStatus == "FAILED") // job finished running
-												vscode.window.showWarningMessage(`Request job status is ${found_job.jobStatus}. The output may be missing.`);
-											
-										} else{
-											vscode.window.showWarningMessage(`Request job status is ${found_job.jobStatus}`);
-										}
-									} else if(d.missingOutput.length > 0){  // requested job is missing the output
-										console.log("Missing");
-										vscode.window.showErrorMessage(`Couldn't find the job`);
-									}
-								} else {
-									console.log(d.errorString);
-									vscode.window.showErrorMessage(`Couldn't get job data. ${d.errorString}`);
+						}).then( async (response: any) => {
+							// handle success							
+							if(response.status == 200){
+								// handle success
+								console.log(response);
+								this._data = response.data;
+								vscode.window.showInformationMessage(`Successfullly retrieved job results.`);
+								vscode.commands.executeCommand('specOutline.refresh', this.getData());
+								const new_job:any = {};
+								new_job.output_url = output_url;
+								new_job.notifyMsg = msg;
+								if ( jobId )
+									new_job.jobId = jobId;
+								if (!this.job_exists(new_job)){
+									this._jobs.push(new_job);
+									this.updateJobs();
+									await this.dump();
 								}
+								this.updateCurrentJob(jobId);								
 							} else {
-								vscode.window.showErrorMessage(`Couldn't get job data. Response status code was ${resp.status}`);
-								console.log("ERROR. status code is " + resp.status);
+								vscode.window.showWarningMessage(`Response status was ${response.status}.`);
 							}
 						}).catch((error: any) => {
 							// handle error
@@ -117,25 +128,6 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 							vscode.window.showErrorMessage(`Couldn't get job data. Response ${error.message}`);
 						}).then(() => {
 							// always executed
-							console.log("the always part");
-							if (data_url){
-								vscode.window.showInformationMessage(`Gettings job results...`);
-								axios.get(data_url).then( (response: any) => {
-									// handle success
-									console.log(response);
-									this._data = response.data;
-									vscode.window.showInformationMessage(`Successfullly retrieved job results.`);
-									vscode.commands.executeCommand('specOutline.refresh', this.getData());
-								}).catch( (error: any) => {
-									// handle error
-									console.log(error);
-									vscode.window.showErrorMessage(`Couldn't get job results. Response status code was ${error.message}`);
-								}).then(function () {
-									// always executed
-								});
-							} else {
-								console.log("Empty data url");
-							}
 						});
 						break;
 					}
@@ -159,21 +151,57 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 		}
 	}
 
+	public updateCurrentJob(jobId: string) {
+		if (this._view) {
+			console.log("updateCurrentJob()");
+			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
+			this._view.webview.postMessage({ type: 'updateCurrentJob', current: jobId });
+		}
+	}
+
 	public getData(){
 		if (this._data)
 			return this._data;
 		return null;
 	}
 
-	public addJob(jobId: string, isDev?: Boolean){
+	public addJob(output_url: string, msg?: string){
 		if (this._view) {
 			this._view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-			let new_job :any = { type: 'addJob', id: jobId};
-			if (isDev)
-				new_job.isDev = true;
-			this._jobs.push(new_job);
+			let new_job :any = { type: 'addJob', output_url: output_url};
+			if (msg)
+				new_job.notifyMsg = msg;
+			// this._jobs.push(new_job);
+			// here we go
 			this._view.webview.postMessage(new_job);
 		}
+	}
+
+	private async dump(){
+		try{
+		const d = JSON.stringify(this._jobs);
+		fs.writeFileSync(this._recent_path, d);
+		} catch (e){
+			console.log("Couldn't store data into file");
+			console.log(e.message);
+		}
+	}
+
+	private removeJob(jobId: string){
+		const index = this._jobs.indexOf(jobId);
+		console.log("removeJob with jobId=", jobId);
+		if (index != -1){
+			this._jobs.splice(index, 1);
+			console.log("removed");
+		}
+	}
+
+	private job_exists(new_job: any){
+		const output_url_list = this._jobs.map((job) => job.output_url);
+		const current_output_url = new_job.output_url;
+		if (output_url_list.includes(current_output_url))
+			return true;
+		return false;
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
