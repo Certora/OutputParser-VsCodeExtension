@@ -18,7 +18,7 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 	) { 
 		console.log(process.env.CERTORA);
 		const certora_path = process.env.CERTORA;
-		this._recent_path = certora_path + "/recent_jobs.json";
+		this._recent_path = certora_path + "/.certora_recent_jobs.json";
 		try {
 			const jobs = JSON.parse(fs.readFileSync(this._recent_path, 'utf-8'));
 			console.log("recent jobs");
