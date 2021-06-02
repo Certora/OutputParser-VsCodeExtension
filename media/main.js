@@ -8,7 +8,6 @@
     // This state is persisted even after the webview content itself is destroyed when a webview becomes hidden
     const prevState = vscode.getState() || { currentJob: "", jobs: [] }; // Q: should we save the data object too ?
     let jobs = prevState.jobs;
-    console.log(prevState);
 
     updateRecentJobs(jobs);
 
@@ -29,8 +28,12 @@
                 }
             case 'updateCurrentJob':
                 {
-                     console.log("updateCurrentJob-", message.current);
-                     vscode.setState({ jobs: prevState.jobs, currentJob: message.current });
+                    //  console.log("updateCurrentJob-", message.current);
+                     const current_state = vscode.getState();
+                     let jobs = [];
+                     if (current_state)
+                        jobs = current_state.jobs;
+                     vscode.setState({ jobs: jobs, currentJob: message.current });
                      break;
                 }
             case 'getJob':
@@ -67,20 +70,26 @@
             
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log("clicked from update");
+                // console.log("clicked from update");
                 getJob(link);
             });
             div.appendChild(link);
         }
 
-        if (prevState.currentJob){
-            const current_job = document.getElementById(prevState.currentJob);
-            if (current_job)
-                current_job.classList.add('active');
+        const current_state = vscode.getState();
+        let currentJob = "";
+
+        if (current_state && current_state.currentJob){
+            currentJob = current_state.currentJob;
+            const current_elem = document.getElementById(current_state.currentJob);
+            if (current_elem){
+                current_elem.classList.add('active');
+                // console.log("Added active class to", current_state.currentJob);
+            }
         }
 
         // Update the saved state
-        vscode.setState({ jobs: jobs, currentJob: prevState.currentJob });
+        vscode.setState({ jobs: jobs, currentJob: currentJob });
     }
 
 
@@ -98,10 +107,6 @@
         const param = { type: 'jobSelected', value: item.id, output_url: item.dataset.href, msg: item.textContent };
         // send data to extension
         vscode.postMessage(param);
-        // update webview state
-        /*let new_state = prevState;
-        new_state.currentJob = item.id
-        vscode.setState(new_state);*/
     }
 
     /** 
@@ -112,15 +117,19 @@
      * Then triggers getJob()
     */
     function addJob(output_url, notifyMsg){
-        if (prevState.jobs){
-            let output_urls = prevState.jobs.map(job => job.output_url);
-            if (output_urls.includes(output_url)){
+        const id = get_id(output_url);
+        const current_state = vscode.getState();
+        let current_state_jobs = [];
+        if (current_state && current_state.jobs){
+            let output_urls = current_state.jobs.map(job => job.output_url);
+            let ids = current_state.jobs.map(job => job.jobId);
+            if (output_urls.includes(output_url) || ids.includes(id)){
                 console.log("Already included in the list");
                 return;
             }
+            current_state_jobs = current_state.jobs;
         }
         let new_job = {"output_url": output_url};
-        const id = get_id(output_url);
         if (id)
             new_job.jobId = id;
         if (notifyMsg)
@@ -129,9 +138,8 @@
             new_job.notifyMsg = id;
         else
             new_job.notifyMsg = "Unknown";
-        console.log("new job", new_job);
-        prevState.jobs.push(new_job);
-        updateRecentJobs(prevState.jobs);
+        current_state_jobs.push(new_job);
+        updateRecentJobs(current_state_jobs);
         let new_job_link;
         if (id)
             new_job_link = document.getElementById(id);
@@ -141,7 +149,6 @@
                 if ( href && href == output_url)
                     return href;
             });
-        console.log(new_job_link);
         if (!new_job_link){
             console.log("Couldn't locate the new element...")
         } else {

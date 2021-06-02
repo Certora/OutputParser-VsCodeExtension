@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 
@@ -18,13 +19,13 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 	) { 
 		console.log(process.env.CERTORA);
 		const certora_path = process.env.CERTORA;
-		this._recent_path = certora_path + "/.certora_recent_jobs.json";
+		this._recent_path = path.join(certora_path, ".certora_recent_jobs.json");
+		// console.log(this._recent_path);
 		try {
-			const jobs = JSON.parse(fs.readFileSync(this._recent_path, 'utf-8'));
-			console.log("recent jobs");
+			let jobs = JSON.parse(fs.readFileSync(this._recent_path, 'utf-8'));
 			const data = "data.json";
 			jobs.forEach((job: any) => {
-				console.log(job);
+				// console.log(job);
 				if (job.output_url) {
 					if (!job.output_url.includes(data)){
 						console.log('output_url:' + job.output_url);
@@ -91,34 +92,32 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 				case 'jobSelected':
 					{
 						console.log(data.value);
-						// console.log(process.env.CERTORAKEY);
 						// vscode.window.showInformationMessage(`Searching for job with id=${data.value}`);
 						const output_url = data.output_url;
 						const jobId = data.value;
 						const msg = data.msg;
 						vscode.window.showInformationMessage(`Gettings job results...`);
-						axios.get(output_url, 
-						{ params: {
-							certoraKey: process.env.CERTORAKEY}
-						}).then( async (response: any) => {
+						axios.get(output_url).then( async (response: any) => {
+							console.log(response);
 							// handle success							
 							if(response.status == 200){
 								// handle success
-								console.log(response);
 								this._data = response.data;
 								vscode.window.showInformationMessage(`Successfullly retrieved job results.`);
 								vscode.commands.executeCommand('specOutline.refresh', this.getData());
 								const new_job:any = {};
 								new_job.output_url = output_url;
 								new_job.notifyMsg = msg;
-								if ( jobId )
+								if ( jobId ){
 									new_job.jobId = jobId;
+									this.updateCurrentJob(jobId);
+								} else {
+									this.updateCurrentJob("");
+								}
 								if (!this.job_exists(new_job)){
 									this._jobs.push(new_job);
-									this.updateJobs();
 									await this.dump();
-								}
-								this.updateCurrentJob(jobId);								
+								}								
 							} else {
 								vscode.window.showWarningMessage(`Response status was ${response.status}.`);
 							}
@@ -128,6 +127,7 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 							vscode.window.showErrorMessage(`Couldn't get job data. Response ${error.message}`);
 						}).then(() => {
 							// always executed
+							this.updateJobs();
 						});
 						break;
 					}
