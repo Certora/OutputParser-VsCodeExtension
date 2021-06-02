@@ -276,7 +276,9 @@ export function activate(context: vscode.ExtensionContext) {
 				console.log(msg);
 				const args_index = output_url.indexOf("?");
 				if (args_index != -1){
-					const url = output_url.slice(0, args_index);
+					let url = output_url.slice(0, args_index);
+					if (!url.endsWith("/"))
+						url += "/";
 					const args = output_url.slice(args_index);	
 					const data_url = url + data + args;
 					recentJobsprovider.addJob(data_url, msg);
