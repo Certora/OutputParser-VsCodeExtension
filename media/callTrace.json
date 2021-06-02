@@ -1,0 +1,457 @@
+{ "callTrace": {
+    "funcName": "integrityWithdraw(amount=0xce4604a0000000000000000000000000, balance=?)",
+    "returnValue": "",
+    "status": "",
+    "revertMsg": "",
+    "childrenList":[
+        {
+            "funcName": "Load from _notEntered (storage slot: 0, type: bool): 1",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from underlying (storage slot: 17, type: address): 1018",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from comptroller (storage slot: 5, type: contract ComptrollerInterface): 1df9",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from interestRateModel (storage slot: 6, type: contract InterestRateModel): 13e2",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from decimals (storage slot: 3, type: uint8): 0",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from pendingAdmin (storage slot: 4, type: address payable): 0",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from owner (storage slot: 0, type: address): 0",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "Load from pendingOwner (storage slot: 1, type: address): 0",
+            "returnValue": "",
+            "status": "",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "CompoundStrategyHarness.receiver",
+            "returnValue": "",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[]
+
+        },
+        {
+            "funcName": "CompoundStrategyHarness.getTokenBalanceOf(ce4604a0000000000000000000000000)",
+            "returnValue": "0",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[
+                {
+                    "funcName": "CErc20.balanceOfUnderlying(ce4604a0000000000000000000000000)",
+                    "returnValue": "0",
+                    "status": "SUCCESS",
+                    "revertMsg": "",
+                    "childrenList":[
+                        {
+                            "funcName": "Load from _notEntered (storage slot: 0, type: bool): 1",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from accrualBlockNumber (storage slot: 9, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from totalSupply (storage slot: 13, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Store at _notEntered (storage slot: 0, type: bool): 1 (see .certora_config/CErc20.sol_4/1_CToken.sol: 1431)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from storage slot 27790101416955886901657036402085097884789183272101222321864078675497820450979840: 0 (see accountTokens[owner] @ .certora_config/CErc20.sol_4/1_CToken.sol: 192)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "funcName": "DummyERC20A.balanceOf(ce4604a0000000000000000000000005)",
+            "returnValue": "5b7",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[
+                {
+                    "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873232: 5b7 (see b[account] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 31)",
+                    "returnValue": "",
+                    "status": "",
+                    "revertMsg": "",
+                    "childrenList":[]
+
+                }
+            ]
+        },
+        {
+            "funcName": "CompoundStrategyHarness.withdraw(ce4604a0000000000000000000000000)",
+            "returnValue": "ce4604a0000000000000000000001d28",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[
+                {
+                    "funcName": "CErc20.redeemUnderlying(ce4604a0000000000000000000000000)",
+                    "returnValue": "0",
+                    "status": "SUCCESS",
+                    "revertMsg": "",
+                    "childrenList":[
+                        {
+                            "funcName": "Load from _notEntered (storage slot: 0, type: bool): 1",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from accrualBlockNumber (storage slot: 9, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from totalSupply (storage slot: 13, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from comptroller (storage slot: 5, type: contract ComptrollerInterface): 1df9 (see .certora_config/CErc20.sol_4/1_CToken.sol: 654)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "comptroller.redeemAllowed(address(this), redeemer, vars.redeemTokens): NonDet summary @ 0_strategy.spec:37:72",
+                            "returnValue": "",
+                            "status": "SUMMARIZED",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from accrualBlockNumber (storage slot: 9, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from totalSupply (storage slot: 13, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from storage slot 27790101416955886901657036402085097884789183272101222321864078675497820450979840: 0 (see accountTokens[redeemer] @ .certora_config/CErc20.sol_4/1_CToken.sol: 674)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from underlying (storage slot: 17, type: address): 1018 (see .certora_config/CErc20.sol_4/0_CErc20.sol: 140)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "DummyERC20A.balanceOf(ce4604a0000000000000000000000004)",
+                            "returnValue": "",
+                            "status": "SUCCESS",
+                            "revertMsg": "",
+                            "childrenList":[
+                                {
+                                    "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873216: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffea0c (see b[account] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 31)",
+                                    "returnValue": "",
+                                    "status": "",
+                                    "revertMsg": "",
+                                    "childrenList":[]
+
+                                }
+                            ]
+                        },
+                        {
+                            "funcName": "Load from underlying (storage slot: 17, type: address): 1018 (see .certora_config/CErc20.sol_4/0_CErc20.sol: 190)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "DummyERC20A.transfer(ce4604a0000000000000000000000000, ce4604a0000000000000000000000000)",
+                            "returnValue": "",
+                            "status": "SUCCESS",
+                            "revertMsg": "",
+                            "childrenList":[
+                                {
+                                    "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873216: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffea0c (see b[msg.sender] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 34)",
+                                    "returnValue": "",
+                                    "status": "",
+                                    "revertMsg": "",
+                                    "childrenList":[]
+
+                                },
+                                {
+                                    "funcName": "Store at storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873216: ffffffffffffffffffffffffffffffff31b9fb5fffffffffffffffffffffea0c (see b[msg.sender] = sub(b[msg.sender], amount) @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 34)",
+                                    "returnValue": "",
+                                    "status": "",
+                                    "revertMsg": "",
+                                    "childrenList":[]
+
+                                },
+                                {
+                                    "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873152: 1d28 (see b[recipient] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 35)",
+                                    "returnValue": "",
+                                    "status": "",
+                                    "revertMsg": "",
+                                    "childrenList":[]
+
+                                },
+                                {
+                                    "funcName": "Store at storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873152: ce4604a0000000000000000000001d28 (see b[recipient] = add(b[recipient], amount) @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 35)",
+                                    "returnValue": "",
+                                    "status": "",
+                                    "revertMsg": "",
+                                    "childrenList":[]
+
+                                }
+                            ]
+                        },
+                        {
+                            "funcName": "Store at storage slot 27790101416955886901657036402085097884789183272101222321864078675497820450979840: 0 (see accountTokens[redeemer] = vars.accountTokensNew @ .certora_config/CErc20.sol_4/1_CToken.sol: 698)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from comptroller (storage slot: 5, type: contract ComptrollerInterface): 1df9 (see .certora_config/CErc20.sol_4/1_CToken.sol: 705)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "comptroller.redeemVerify(address(this), redeemer, vars.redeemAmount, vars.redeemTokens): NonDet summary @ 0_strategy.spec:38:90",
+                            "returnValue": "",
+                            "status": "SUMMARIZED",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Store at _notEntered (storage slot: 0, type: bool): 1 (see .certora_config/CErc20.sol_4/1_CToken.sol: 1431)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        }
+                    ]
+                },
+                {
+                    "funcName": "DummyERC20A.balanceOf(ce4604a0000000000000000000000000)",
+                    "returnValue": "",
+                    "status": "SUCCESS",
+                    "revertMsg": "",
+                    "childrenList":[
+                        {
+                            "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873152: ce4604a0000000000000000000001d28 (see b[account] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 31)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        }
+                    ]
+                },
+                {
+                    "funcName": "DummyERC20A.transfer(ce4604a0000000000000000000000005, ce4604a0000000000000000000001d28)",
+                    "returnValue": "",
+                    "status": "SUCCESS",
+                    "revertMsg": "",
+                    "childrenList":[
+                        {
+                            "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873152: ce4604a0000000000000000000001d28 (see b[msg.sender] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 34)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Store at storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873152: 0 (see b[msg.sender] = sub(b[msg.sender], amount) @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 34)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873232: 5b7 (see b[recipient] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 35)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Store at storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873232: ce4604a00000000000000000000022df (see b[recipient] = add(b[recipient], amount) @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 35)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "funcName": "CompoundStrategyHarness.getTokenBalanceOf(ce4604a0000000000000000000000000)",
+            "returnValue": "0",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[
+                {
+                    "funcName": "CErc20.balanceOfUnderlying(ce4604a0000000000000000000000000)",
+                    "returnValue": "0",
+                    "status": "SUCCESS",
+                    "revertMsg": "",
+                    "childrenList":[
+                        {
+                            "funcName": "Load from _notEntered (storage slot: 0, type: bool): 1",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from accrualBlockNumber (storage slot: 9, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from totalSupply (storage slot: 13, type: uint256): 0",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        },
+                        {
+                            "funcName": "Load from storage slot 27790101416955886901657036402085097884789183272101222321864078675497820450979840: 0 (see accountTokens[owner] @ .certora_config/CErc20.sol_4/1_CToken.sol: 192)",
+                            "returnValue": "",
+                            "status": "",
+                            "revertMsg": "",
+                            "childrenList":[]
+
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "funcName": "DummyERC20A.balanceOf(ce4604a0000000000000000000000005)",
+            "returnValue": "ce4604a00000000000000000000022df",
+            "status": "SUCCESS",
+            "revertMsg": "",
+            "childrenList":[
+                {
+                    "funcName": "Load from storage slot 3705346855594118253554271520278013051309026461647985001656901201851889485873232: ce4604a00000000000000000000022df (see b[account] @ .certora_config/DummyERC20A.sol_2/0_DummyERC20A.sol: 31)",
+                    "returnValue": "",
+                    "status": "",
+                    "revertMsg": "",
+                    "childrenList":[]
+
+                }
+            ]
+        }
+    ]
+    }
+}

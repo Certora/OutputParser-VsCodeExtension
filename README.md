@@ -2,9 +2,10 @@
 
 This package provides following views
 
+- Recent jobs webview
 - Spec outline view
 - Available contracts view
-- Call trace view
+- Call trace webview
 - Variables view
 - Call resolution warnings view
 
@@ -29,7 +30,7 @@ This package uses following contribution points, activation events and APIs
 
 ### Activation Events
 
-- `workspaceContains:data.json`
+- `onView:renectJobsView`
 
 ### APIs
 

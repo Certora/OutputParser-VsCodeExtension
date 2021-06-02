@@ -1,31 +1,12 @@
-'use strict';
-
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-
-import { CallTraceProvider } from './callTrace';
-import { SpecOutlineProvider } from './specOutline';
 import { AvailableContractsProvider } from './availableContracts';
-import { VariablesProvider } from './variables';
-import { CallResolutionWarningsProvider } from './callResolutionWarnings';
 import { CallResolutionProvider } from './callResolution';
+import { CallResolutionWarningsProvider } from './callResolutionWarnings';
+import { CallTraceViewProvider } from './callTrace';
+import { RecentJobsViewProvider } from './recent';
+import { SpecOutlineProvider } from './specOutline';
+import { VariablesProvider } from './variables';
 
-function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
-}
-
-function getData(rootPath: string) : any {
-	// read the json file - expected to be in the working directory
-	const dataPath = rootPath + "/data.json";
-	try {
-		const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-		return data
-	} catch (e){
-		console.log("Couldn't read data.json file");
-		console.log(e.message);
-	}
-	return null;
-}
 
 function getMainProperties(data: any): Set<any> {
 	let main_properties = new Set();
@@ -38,81 +19,48 @@ function getMainProperties(data: any): Set<any> {
 	return main_properties;
 }
 
-export async function activate(context: vscode.ExtensionContext) {
-	//console.log(context)
-	// let isDefined = false;
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders){
-		vscode.window.showInformationMessage('No opened workspace...');
-		return
-	}
-	const root = workspaceFolders[0];
-	const rootPath = root.uri.fsPath;
-	console.log(rootPath);
-	
-	try{
-		// open the spec file in the editor
-		vscode.workspace.findFiles('*/*.spec').then((specFilesList) => {
-			if (specFilesList && specFilesList.length > 0){
-				const foundFile = specFilesList[0];
 
-				var openPath = vscode.Uri.file(foundFile.path);
-				vscode.workspace.openTextDocument(openPath).then(doc => {
-					vscode.window.showTextDocument(doc);
-				});
-			} else {
-				console.log("Couldn't find a spec file")
-			}
-		});
-	} catch (e){
-		console.log("Couldn't open the spec file");
-		console.log(e);
-	}
-
-	const data = getData(rootPath);
-
+export function activate(context: vscode.ExtensionContext) {
 	// define the availble contracts tree
-	const availableContractsTreeProvder = new AvailableContractsProvider(data);
+	const availableContractsTreeProvder = new AvailableContractsProvider(null);
 	const availableContractsDisposal = vscode.window.registerTreeDataProvider('availableContracts', availableContractsTreeProvder);
 	// When this extension is deactivated the disposables will be disposed
 	context.subscriptions.push(availableContractsDisposal);
 
-	vscode.commands.registerCommand('availableContracts.refresh', () => {
-		const data = getData(rootPath);
+	vscode.commands.registerCommand('availableContracts.refresh', (data) => {
 		availableContractsTreeProvder.refresh(data);
 	});
 
 	// define the properties tree
-	const specTreeProvder = new SpecOutlineProvider(data);
+	const specTreeProvder = new SpecOutlineProvider(null);
 	const specTreeProviderDisposal = vscode.window.registerTreeDataProvider('specOutline', specTreeProvder);
 	context.subscriptions.push(specTreeProviderDisposal);
 
-	vscode.commands.registerCommand('specOutline.refresh', () => {
+	vscode.commands.registerCommand('specOutline.refresh', (data) => {
 		vscode.commands.executeCommand('setContext', 'callTraceDefined', false);
 		vscode.commands.executeCommand('setContext', 'propertyChosen', false);
-		const data = getData(rootPath);
 		specTreeProvder.refresh(data);
 		vscode.window.showInformationMessage(`Successfully refreshed spec outline.`);
-		vscode.commands.executeCommand('availableContracts.refresh').then(() =>
+		vscode.commands.executeCommand('availableContracts.refresh', data).then(() =>
 		vscode.window.showInformationMessage(`Successfully refreshed available contracts.`));
 	});
-	try{
-		// vscode.commands.executeCommand('workbench.action.explorer.focus');
-		vscode.commands.executeCommand('specOutline.focus');
-	}  catch (e){
-		console.log("Couldn't focus on specOutline view");
-		console.log(e);
-	}
 
-	// Define a call trace tree provider
-	const callTraceProvider = new CallTraceProvider(null);
-	const callTraceProviderDisposal = vscode.window.registerTreeDataProvider('callTrace', callTraceProvider);
-	context.subscriptions.push(callTraceProviderDisposal);
+	// Define a call trace webview provider
+	let callTraceProvider = new CallTraceViewProvider(context.extensionUri, null);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(CallTraceViewProvider.viewType, callTraceProvider));
 	
-	// Define a command to refresh the call trace tree
+	// Define a command to refresh the call trace
 	const callTraceRefresh = vscode.commands.registerCommand(
 		'callTrace.refresh', 
-		(callTraceData: any) => callTraceProvider.refresh(callTraceData)
+		(callTraceData: any) => {
+			try{
+				callTraceProvider.refresh(callTraceData);
+			} catch (e){
+				console.log("error on refresh");
+				console.log(e);
+			}
+		}
 	);
 	context.subscriptions.push(callTraceRefresh);
 
@@ -187,21 +135,34 @@ export async function activate(context: vscode.ExtensionContext) {
 				callResolutionWarnings = currentMethod.callResolutionWarningsTable?.callResolutionWarnings;
 				callResolution = currentMethod.callResolutionTable?.callResolution;
 			}
-
+			
 			try{				
 				console.log("CallTraceProvider");
 				// update the call trace view
 				if (callTrace){
-					vscode.commands.executeCommand('callTrace.refresh', callTrace);
+					vscode.commands.executeCommand('callTrace.refresh', callTrace).then(v => {
+						// set callTraceDefined = true => callTrace view is visible
+						vscode.commands.executeCommand('setContext', 'callTraceDefined', true).then(v => {
+							vscode.commands.executeCommand('callTrace.focus').then(() => {
+								console.log("callTrace should be at focus now");
+							});
+						});
+					}).then(undefined, err => {
+						console.error('Error occurred');
+						console.log(err.message);
+					 });
 				} else {
-					vscode.commands.executeCommand('callTrace.refresh', null);
+					vscode.commands.executeCommand('callTrace.refresh', null).then(v => {
+						// set callTraceDefined = false => callTrace view is hidden
+						// vscode.commands.executeCommand('setContext', 'callTraceDefined', false).then(v => {
+						// 	console.log("invisible calltrace");
+						// });
+					}).then(undefined, err => {
+						console.error('Error occurred when running callTrace.refresh with null');
+						console.log(err.message);
+					 });
 				}
-				// set callTraceDefined = true => callTrace view is visible
-				vscode.commands.executeCommand('setContext', 'callTraceDefined', true).then(v => {
-					vscode.commands.executeCommand('callTrace.focus').then(() => {
-						console.log("callTrace should be at focus now");
-					});
-				});
+				
 			} catch (e){
 				console.log("Couldn't create a tree view for call trace");
 				console.log(e);
@@ -261,9 +222,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			
 				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
-					vscode.commands.executeCommand('callResolutionWarnings.focus').then(() => {
+					/*vscode.commands.executeCommand('callResolutionWarnings.focus').then(() => {
 						console.log("focus on the callResolutionWarnings view");
-					});
+					});*/
+					console.log("focus on the callResolutionWarnings view");
 				});
 			} catch (e){
 				console.log("Couldn't create a tree view for callResolutionWarnings");
@@ -281,9 +243,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			
 				vscode.commands.executeCommand('setContext', 'propertyChosen', true).then(() => {
-					vscode.commands.executeCommand('callResolution.focus').then(() => {
+					/*vscode.commands.executeCommand('callResolution.focus').then(() => {
 						console.log("focus on the callResolution view");
-					});
+					});*/
+					console.log("focus on the callResolution view");
 				});
 			} catch (e){
 				console.log("Couldn't create a tree view for callResolution");
@@ -297,7 +260,37 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(commandDisposal);
 
-	// TODO: diagnostics collection can be used for presenting the errors/warnings
-	// however, it has to be connected to a documented
 
+	const recentJobsprovider = new RecentJobsViewProvider(context.extensionUri);
+
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(RecentJobsViewProvider.viewType, recentJobsprovider));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('recent.addJob', async () => {
+			let output_url = await vscode.window.showInputBox({ placeHolder: 'Output url' });
+			const data = "data.json";
+			if (output_url) {
+				console.log('output_url:' + output_url);
+				let msg = await vscode.window.showInputBox({ placeHolder: 'Message? type the message or press Escape' });
+				console.log(msg);
+				const args_index = output_url.indexOf("?");
+				if (args_index != -1){
+					let url = output_url.slice(0, args_index);
+					if (!url.endsWith("/"))
+						url += "/";
+					const args = output_url.slice(args_index);	
+					const data_url = url + data + args;
+					recentJobsprovider.addJob(data_url, msg);
+				} else if(output_url.endsWith("/")){  // no anonymous key
+					recentJobsprovider.addJob(output_url + data, msg);
+				}else {
+					vscode.window.showErrorMessage("Wrong output url format...")
+				}
+			}
+		}));
+	
 }
+
+
+

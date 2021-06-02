@@ -76,14 +76,14 @@ export class VariablesProvider implements vscode.TreeDataProvider<VariablesItem>
 		}
 	}
 
-	getParent(element?: VariablesItem): VariablesItem {
+	/*getParent(element?: VariablesItem): VariablesItem {
 		// this function is used for treeview.reveal() call only.
 		// TODO: make sure it is defined correctly
 		/*if (element){
 			element.parent;
-		}*/
+		}
 		return null;
-	}
+	}*/
 
 	private getIcon(element: VariablesItem): any {
 		if (element.collapsibleState != vscode.TreeItemCollapsibleState.None) {
