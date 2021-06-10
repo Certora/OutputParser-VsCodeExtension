@@ -43,7 +43,7 @@
                 }
             case 'addJob':
                 {
-                    addJob(message.output_url, message.notifyMsg);
+                    addJob(message.output_url, message.notify_msg);
                     break;
                 }
         }
@@ -61,11 +61,11 @@
             else
                 link.dataset.href = "";
             link.className = 'clicks list-group-item list-group-item-action';
-            link.id = job.jobId;
-			if (job.notifyMsg){
-                link.textContent = job.notifyMsg;
+            link.id = job.job_id;
+			if (job.notify_msg){
+                link.textContent = job.notify_msg;
             } else{
-                link.textContent = job.jobId;
+                link.textContent = job.job_id;
              }
             
             link.addEventListener('click', (e) => {
@@ -111,12 +111,12 @@
 
     /** 
      * @param {string} output_url 
-     * @param {string} notifyMsg
+     * @param {string} notify_msg
      * 
      * Appends the supplied job to current job list
      * Then triggers getJob()
     */
-    function addJob(output_url, notifyMsg){
+    function addJob(output_url, notify_msg){
         const id = get_id(output_url);
         const current_state = vscode.getState();
         let current_state_jobs = [];
@@ -131,14 +131,19 @@
         }
         let new_job = {"output_url": output_url};
         if (id)
-            new_job.jobId = id;
-        if (notifyMsg)
-            new_job.notifyMsg = notifyMsg;
+            new_job.job_id = id;
+        if (notify_msg)
+            new_job.notify_msg = notify_msg;
         else if(id)
-            new_job.notifyMsg = id;
+            new_job.notify_msg = id;
         else
-            new_job.notifyMsg = "Unknown";
-        current_state_jobs.push(new_job);
+            new_job.notify_msg = "Unknown";
+        // add the new job to the beginning of an array
+        // and returns the new length
+        if (current_state_jobs.unshift(new_job) > 10){
+            // pop the last element
+            current_state_jobs.pop();
+        }
         updateRecentJobs(current_state_jobs);
         let new_job_link;
         if (id)

@@ -2,7 +2,7 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.2.0",
+	"version": "0.2.2",
 	"publisher": "Certora",
 	"engines": {
 		"vscode": "^1.50.0"
