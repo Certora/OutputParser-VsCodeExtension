@@ -289,6 +289,33 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 		}));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('recent.viewJob', async () => {
+			let output_url = await vscode.window.showInputBox({ placeHolder: 'Output url' });
+			const data = "data.json";
+			if (output_url) {
+				console.log('output_url:' + output_url);
+				let msg = await vscode.window.showInputBox({ placeHolder: 'Message? type the message or press Escape' });
+				console.log(msg);
+				const args_index = output_url.indexOf("?");
+				if (args_index != -1){
+					let url = output_url.slice(0, args_index);
+					if (!url.endsWith("/"))
+						url += "/";
+					const args = output_url.slice(args_index);	
+					const data_url = url + data + args;
+					const input_url = output_url.replace("/output/", "/zipInput/");
+					recentJobsprovider.viewJob(data_url, input_url, msg);
+				} else if(output_url.endsWith("/")){  // no anonymous key
+					const input_url = output_url.replace("/output/", "/zipInput/");
+					recentJobsprovider.viewJob(output_url + data, input_url, msg);
+				} else {
+					vscode.window.showErrorMessage("Wrong output url format...")
+				}
+			}
+		})
+	);
 	
 }
 

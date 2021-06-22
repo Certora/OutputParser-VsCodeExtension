@@ -2,7 +2,7 @@
 	"name": "certora-output-parser",
 	"displayName": "Certora output parser",
 	"description": "Presents Certora verification results",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"publisher": "Certora",
 	"engines": {
 		"vscode": "^1.50.0"
@@ -141,7 +141,8 @@
 		"lint": "eslint . --ext .ts,.tsx"
 	},
 	"dependencies": {
-		"axios": "^0.21.1"
+		"axios": "^0.21.1",
+		"extract-zip": "^2.0.1"
 	},
 	"devDependencies": {
 		"@types/node": "^12.12.0",

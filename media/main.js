@@ -11,9 +11,14 @@
 
     updateRecentJobs(jobs);
 
-    // user can add any job by its id
+    // user can add any job by passing the output url
     document.querySelector('#add-job-button').addEventListener('click', () => {
         vscode.postMessage({ type: 'addJob'});;
+    });
+
+    // user can view any job by passing the output url
+    document.querySelector('#advanced-add-job-button').addEventListener('click', () => {
+        vscode.postMessage({ type: 'viewJob'});;
     });
 
     // Handle messages sent from the extension to the webview
@@ -44,6 +49,11 @@
             case 'addJob':
                 {
                     addJob(message.output_url, message.notify_msg);
+                    break;
+                }
+            case 'viewJob':
+                {
+                    viewJob(message.output_url, message.input_url, message.notify_msg);
                     break;
                 }
         }
@@ -159,6 +169,14 @@
         } else {
             getJob(new_job_link);
         }
+    }
+
+    function viewJob(output_url, input_url, notify_msg){
+        addJob(output_url, notify_msg);
+        const id = get_id(output_url);
+        const param = { type: 'jobInputs', url: input_url , id: id};
+        // send data to extension
+        vscode.postMessage(param);
     }
 
     /** 
