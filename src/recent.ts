@@ -483,7 +483,7 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 			<body>
 				<div id="links" class="list-group"></div>
 				<button id="add-job-button">Add Job</button>
-				<button id="advanced-add-job-button">View Job</button>
+				<button id="advanced-add-job-button" class="secondary">View Job</button>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

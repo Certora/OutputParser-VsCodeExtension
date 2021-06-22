@@ -72,6 +72,7 @@
                 link.dataset.href = "";
             link.className = 'clicks list-group-item list-group-item-action';
             link.id = job.job_id;
+            link.title = job.job_id;
 			if (job.notify_msg){
                 link.textContent = job.notify_msg;
             } else{
@@ -156,14 +157,15 @@
         }
         updateRecentJobs(current_state_jobs);
         let new_job_link;
-        if (id)
+        if (id){
             new_job_link = document.getElementById(id);
-        else
+        } else {
             new_job_link = document.querySelectorAll('.clicks').forEach((el) => {
                 const href = el.getAttribute('data-href');
                 if ( href && href == output_url)
                     return href;
             });
+        }
         if (!new_job_link){
             console.log("Couldn't locate the new element...")
         } else {
