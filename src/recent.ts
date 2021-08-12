@@ -9,7 +9,7 @@ import { CancellationToken, ExtensionContext, Uri } from "vscode";
 
 export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 
-	public static readonly viewType = 'renectJobsView';
+	public static readonly viewType = 'recentJobsView';
 
 	private _view?: vscode.WebviewView;
 
@@ -37,7 +37,10 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 		console.log(process.cwd());
 		console.log(process.env.CERTORA);
 		this.axios = require('axios');
-		const certora_path = process.env.CERTORA;
+		let certora_path = process.env.CERTORA;
+		if (certora_path === undefined){
+			certora_path = process.cwd();
+		}
 		this._recent_path = path.join(certora_path, ".certora_recent_jobs.json");
 		// console.log(this._recent_path);
 		try {
@@ -80,28 +83,6 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 					}
 				});
 			}
-				
-			/*jobs_paths.forEach((path: string) => {
-			// jobs.forEach((job: any) => {
-				// console.log(job);
-				if (job.output_url) {
-					if (!job.output_url.includes(data)){
-						console.log('output_url:' + job.output_url);
-						const args_index = job.output_url.indexOf("?");
-						if (args_index != -1){
-							const url = job.output_url.slice(0, args_index);
-							const args = job.output_url.slice(args_index);	
-							job.output_url = url + data + args;
-						} else if(job.output_url.endsWith("/")){  // no anonymous key
-							job.output_url += data;
-						}else {
-							vscode.window.showErrorMessage("Wrong output url format...");
-						}
-					}
-				} else {
-					vscode.window.showErrorMessage("Missing output url...");
-				}
-			});*/
 			this._current_path_jobs = current_path_jobs; // jobs;
 		} catch (e){
 			console.log("Couldn't read recent_jobs file");
@@ -212,105 +193,6 @@ export class RecentJobsViewProvider implements vscode.WebviewViewProvider {
 			}
 		});
 	}
-
-	/*private async downloadFile(
-		id: string,
-        url: Uri,
-        filename: string,
-        context: ExtensionContext,
-        cancellationToken?: CancellationToken,
-        onDownloadProgressChange?: (downloadedBytes: number, totalBytes: number | undefined) => void,
-    ): Promise<Uri> {
-        if (url.scheme !== `http` && url.scheme !== `https`) {
-            throw new Error(`Unsupported URI scheme in url. Supported schemes are http and https.`);
-        }
-        vscode.window.showInformationMessage(`Starting download from ${url}`);
-
-        const downloadsStoragePath: string = id;
-        // Generate a temporary filename for the download
-        // const tempFileDownloadPath: string = path.join(downloadsStoragePath, uuid());
-        const tempZipFileDownloadPath = `${downloadsStoragePath}.zip`;
-        const fileDownloadPath: string = path.join(downloadsStoragePath, filename);
-        await fs.promises.mkdir(downloadsStoragePath, { recursive: true });
-
-        const timeoutInMs = this.DefaultTimeoutInMs;
-        const retries = this.DefaultRetries;
-        const retryDelayInMs = this.DefaultRetryDelayInMs;
-        const shouldUnzip = true;
-        let progress = 0;
-        let progressTimerId: any;
-        try {
-            progressTimerId = setInterval(() => {
-                if (progress <= 100) {
-                    // TODO: the whole timer should be under this if.
-                    if (onDownloadProgressChange != null) {
-                        onDownloadProgressChange(progress++, 100);
-                    }
-                }
-                else {
-                    clearInterval(progressTimerId);
-                }
-            }, 1500);
-
-            const downloadStream: Readable = await this._requestHandler.get(
-                url.toString(),
-                timeoutInMs,
-                retries,
-                retryDelayInMs,
-                cancellationToken,
-                onDownloadProgressChange
-            );
-
-            const writeStream = fs.createWriteStream(shouldUnzip ? tempZipFileDownloadPath : tempFileDownloadPath);
-            const pipelinePromise = pipelineAsync([downloadStream, writeStream]);
-            const writeStreamClosePromise = new Promise(resolve => writeStream.on(`close`, resolve));
-            await Promise.all([pipelinePromise, writeStreamClosePromise]);
-
-            if (shouldUnzip) {
-                const unzipDownloadedFileAsyncFn = async (): Promise<void> => {
-                    await fs.promises.access(tempZipFileDownloadPath);
-                    await extractZip(tempZipFileDownloadPath, { dir: tempFileDownloadPath });
-                    await rimrafAsync(tempZipFileDownloadPath);
-                };
-                await RetryUtility.exponentialRetryAsync(unzipDownloadedFileAsyncFn, unzipDownloadedFileAsyncFn.name, retries, retryDelayInMs);
-            }
-
-            // Set progress to 100%
-            if (onDownloadProgressChange != null) {
-                clearInterval(progressTimerId);
-                onDownloadProgressChange(100,100);
-            }
-        }
-        catch (error) {
-            this._logger.error(`${error.message}. Technical details: ${JSON.stringify(error)}`);
-            if (progressTimerId != null) {
-                clearInterval(progressTimerId);
-            }
-            throw error;
-        }
-
-        if (cancellationToken?.isCancellationRequested ?? false) {
-            await rimrafAsync(tempFileDownloadPath);
-            throw new DownloadCanceledError();
-        }
-
-        try {
-            // If the file/folder already exists, remove it now
-            await rimrafAsync(fileDownloadPath);
-
-            const renameDownloadedFileAsyncFn = async (): Promise<Uri> => {
-                // Move the temp file/folder to its permanent location and return it
-                await fs.promises.rename(tempFileDownloadPath, fileDownloadPath);
-                return Uri.file(fileDownloadPath);
-            };
-
-            return RetryUtility.exponentialRetryAsync(renameDownloadedFileAsyncFn, renameDownloadedFileAsyncFn.name, retries, retryDelayInMs);
-        }
-        catch (error) {
-            this._logger.error(`Failed during post download operation with error: ${error.message}. Technical details: ${JSON.stringify(error)}`);
-            throw error;
-        }
-    }*/
 
 	private get_folder_path(job_id: string): string {
 		return path.resolve(this._current_path, `${job_id}.zip`);

@@ -30,7 +30,7 @@ This package uses following contribution points, activation events and APIs
 
 ### Activation Events
 
-- `onView:renectJobsView`
+- `onView:recentJobsView`
 
 ### APIs
 
